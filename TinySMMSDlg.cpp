@@ -21,6 +21,14 @@ static char THIS_FILE[] = __FILE__;
 #define WM_MSG_QUERY_STUDY			(WM_USER +101)
 #define WM_MSG_QUERY_SERIES			(WM_USER +102)
 #define WM_MSG_QUERY_IMAGE			(WM_USER +103)
+#define WM_MSG_QUERY_SMS			(WM_USER +104)
+
+#define WM_MSG_DELETE_PATIENT		(WM_USER +114)
+#define WM_MSG_DELETE_STUDY			(WM_USER +115)
+#define WM_MSG_DELETE_SERIES		(WM_USER +116)
+#define WM_MSG_DELETE_IMAGE			(WM_USER +117)
+
+#define WM_MSG_VIEW_PSSI			(WM_USER +118)
 
 class CAboutDlg : public CDialog
 {
@@ -115,6 +123,10 @@ BEGIN_MESSAGE_MAP(CTinySMMSDlg, CDialog)
 	ON_COMMAND(ID_POPUP_INSERTCOPY32775, &CTinySMMSDlg::OnPopupInsertcopy32775)
 	ON_BN_CLICKED(IDC_BUTTON_RELOAD, &CTinySMMSDlg::OnBnClickedButtonReload)
 	ON_BN_CLICKED(IDC_BUTTON_USER_PROFILE, &CTinySMMSDlg::OnBnClickedButtonUserProfile)
+	ON_BN_CLICKED(IDC_BUTTON_CLEAR_PSSI, &CTinySMMSDlg::OnBnClickedButtonClearPssi)
+	ON_BN_CLICKED(IDC_BUTTON_SMS1, &CTinySMMSDlg::OnBnClickedButtonSms1)
+	ON_BN_CLICKED(IDC_BUTTON_WMLORDER, &CTinySMMSDlg::OnBnClickedButtonWmlorder)
+	ON_BN_CLICKED(IDC_BUTTON_MWLVIEW, &CTinySMMSDlg::OnBnClickedButtonMwlview)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -301,27 +313,27 @@ void CTinySMMSDlg::OnDblclkListTabs()
 void CTinySMMSDlg::OnButtonPatient() 
 {
 	m_strCurrentTable = "Patient";
-	RunSQL("SELECT * FROM Patient",TRUE);
+	RunSQL("SELECT * FROM Patient ORDER BY SerialNo",TRUE);
 	
 }
 
 void CTinySMMSDlg::OnButtonStudy() 
 {
 	m_strCurrentTable = "Study";
-	RunSQL("SELECT * FROM Study",TRUE);
+	RunSQL("SELECT * FROM Study ORDER BY SerialNo",TRUE);
 	
 }
 
 void CTinySMMSDlg::OnButtonSeries() 
 {
 	m_strCurrentTable = "Series";
-	RunSQL("SELECT * FROM Series",TRUE);	
+	RunSQL("SELECT * FROM Series ORDER BY SerialNo",TRUE);	
 }
 
 void CTinySMMSDlg::OnButtonImage() 
 {
 	m_strCurrentTable = "Image";
-	RunSQL("SELECT * FROM Image",TRUE);	
+	RunSQL("SELECT * FROM Image ORDER BY SerialNo",TRUE);	
 	
 }
 
@@ -603,7 +615,7 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 
 	CString strUpTable, strDownTable, strUpTableKeyColumn, strDownTableKeyColumn;
 	CString strSqlPatient, strSqlStudy, strSqlSeries, strSqlImage;
-	CString strKeyValueDown, strKeyValueUp, strMenuText;
+	CString strKeyValueDown, strKeyValueUp, strMenuText, strDeleteKey;
 	if ( m_strCurrentTable.CompareNoCase("patient") == 0 )
 	{
 		strKeyValueDown = GetTextByColumnName(pList, nRow, "PatientGUID");
@@ -619,6 +631,12 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_IMAGE, "Query Image ( PatientID = " + strMenuText + " )");
 		strSqlImage.Format("SELECT * FROM Image WHERE SeriesInstanceUID IN ( SELECT SeriesInstanceUID FROM Series WHERE StudyInstanceUID IN ( SELECT StudyInstanceUID FROM Study WHERE PatientGUID = '%s'))",strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_PATIENT, strKeyValueDown)));
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_PATIENT, "Delete Patient ( PatientID = " + strMenuText + " )");
 	}
 	else if ( m_strCurrentTable.CompareNoCase("study") == 0 )
 	{
@@ -636,6 +654,12 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_IMAGE, "Query Image ( AccessionNo = " + strMenuText + " )");
 		strSqlImage.Format("SELECT * FROM Image WHERE SeriesInstanceUID IN ( SELECT SeriesInstanceUID FROM Series WHERE StudyInstanceUID = '%s')",strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_STUDY, strKeyValueDown)));
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_STUDY, "Delete Study ( AccessionNo = " + strMenuText + " )");
 	}
 	else if ( m_strCurrentTable.CompareNoCase("series") == 0 )
 	{
@@ -653,24 +677,44 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_IMAGE, "Query Image ( BodyPart = " + strMenuText + " )");
 		strSqlImage.Format("SELECT * FROM Image WHERE SeriesInstanceUID = '%s'",strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_SERIES, strKeyValueDown)));
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_SERIES, "Delete Series ( BodyPart = " + strMenuText + " )");
 	}
 	else if ( m_strCurrentTable.CompareNoCase("image") == 0 )
 	{
 		strKeyValueUp = GetTextByColumnName(pList, nRow, "SeriesInstanceUID");
-		strMenuText = GetTextByColumnName(pList, nRow, "ImageNo");
+		strMenuText = GetTextByColumnName(pList, nRow, "SOPInstanceUID");
+		strKeyValueDown = strMenuText;
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PATIENT, "Query Patient ( ImageNo = " + strMenuText + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PATIENT, "Query Patient ( SOPInstanceUID = " + strMenuText + " )");
 		strSqlPatient.Format("SELECT * FROM Patient WHERE PatientGUID IN ( SELECT PatientGUID FROM Study WHERE StudyInstanceUID IN ( SELECT StudyInstanceUID FROM Series WHERE SeriesInstanceUID = '%s'))", strKeyValueUp );
 
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_STUDY, "Query Study ( ImageNo = " + strMenuText + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_STUDY, "Query Study ( SOPInstanceUID = " + strMenuText + " )");
 		strSqlStudy.Format("SELECT * FROM Study WHERE StudyInstanceUID IN ( SELECT StudyInstanceUID FROM Series WHERE SeriesInstanceUID = '%s')", strKeyValueUp );
 
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SERIES, "Query Series ( ImageNo = " + strMenuText + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SERIES, "Query Series ( SOPInstanceUID = " + strMenuText + " )");
 		strSqlSeries.Format("SELECT * FROM Series WHERE SeriesInstanceUID = '%s'",strKeyValueUp );
-	}
 
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_IMAGE, strKeyValueDown)));
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_IMAGE, "Delete Image ( SOPInstanceUID = " + strMenuText + " )");
+	}
+	else if ( m_strCurrentTable.CompareNoCase("SMS") == 0 )
+	{
+		strMenuText = GetTextByColumnName(pList, nRow, "SUID");
+		strKeyValueDown = strMenuText;
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_SMS, strKeyValueDown)));
+	}
 
 	CString strSql;	
 	int nResult = menu.GetSubMenu(0)->TrackPopupMenu(TPM_LEFTALIGN|TPM_RETURNCMD, point.x, point.y, this);
@@ -699,6 +743,13 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 	case WM_MSG_QUERY_IMAGE:
 		RunSQL(strSqlImage, TRUE);
 		m_strCurrentTable = "Image";
+		break;
+	case WM_MSG_DELETE_IMAGE:
+	case WM_MSG_DELETE_SERIES:
+	case WM_MSG_DELETE_STUDY:
+	case WM_MSG_DELETE_PATIENT:
+		DeletePSSI(nResult, strKeyValueDown);
+		m_listResult.DeleteItem(nRow);
 		break;
 	}
 	return TRUE;
@@ -823,4 +874,329 @@ CString CTinySMMSDlg::GetTextByColumnName( CCustomListCtrl* pList, int nRow, con
 	}
 
 	return "";
+}
+
+
+void CTinySMMSDlg::DeletePSSI( int nType, CString strUID )
+{
+	vector<CString> vecSqlList;
+
+	if (nType == WM_MSG_DELETE_PATIENT)
+	{
+		vecSqlList.push_back("Delete Image from Image, Series, Study where Image.SeriesInstanceUID = Series.SeriesInstanceUID and Series.StudyInstanceUID = Study.StudyInstanceUID and Study.PatientGUID = '" + strUID + "'");
+		vecSqlList.push_back("Delete Series from Series, Study where Series.StudyInstanceUID = Study.StudyInstanceUID and Study.PatientGUID = '" + strUID + "'");
+		vecSqlList.push_back("Delete SMS from SMS, Study where SMS.SUID = Study.StudyInstanceUID and Study.PatientGUID = '" + strUID + "'");
+		vecSqlList.push_back("Delete MWLView from MWLView, MWLOrder, Study where MWLView.MWLOrderKey = MWLOrder.MWLOrderKey and MWLOrder.StudyInstanceUID = Study.StudyInstanceUID and Study.PatientGUID = '" + strUID + "'");
+		vecSqlList.push_back("Delete MWLOrder from MWLOrder, Study where MWLOrder.StudyInstanceUID = Study.StudyInstanceUID and Study.PatientGUID = '" + strUID + "'");
+		vecSqlList.push_back("Delete from Study where PatientGUID = '" + strUID + "'");
+		vecSqlList.push_back("Delete from Patient where PatientGUID = '" + strUID + "'");
+	}
+	else if (nType == WM_MSG_DELETE_STUDY)
+	{
+		vecSqlList.push_back("Delete Image from Image, Series, Study where Image.SeriesInstanceUID = Series.SeriesInstanceUID and Series.StudyInstanceUID = '" + strUID + "'");
+		vecSqlList.push_back("Delete Series from Series, Study where Series.StudyInstanceUID = '" + strUID + "'");
+		vecSqlList.push_back("Delete SMS from SMS, Study where SMS.SUID = '" + strUID + "'");
+		vecSqlList.push_back("Delete MWLView from MWLView, MWLOrder, Study where MWLView.MWLOrderKey = MWLOrder.MWLOrderKey and MWLOrder.StudyInstanceUID = '" + strUID + "'");
+		vecSqlList.push_back("Delete from MWLOrder where StudyInstanceUID = '" + strUID + "'");
+		vecSqlList.push_back("Delete from Study where StudyInstanceUID = '" + strUID + "'");
+	}
+	else if (nType == WM_MSG_DELETE_SERIES)
+	{
+		vecSqlList.push_back("Delete from Image where Image.SeriesInstanceUID = '" + strUID + "'");
+		vecSqlList.push_back("Delete from Series where Series.SeriesInstanceUID = '" + strUID + "'");
+	}
+	else 
+	{
+		vecSqlList.push_back("Delete from Image where Image.SopInstanceUID = '" + strUID + "'");
+	}
+
+	m_pDBConn->RunTransaction(vecSqlList);
+}
+
+
+
+void CTinySMMSDlg::OnBnClickedButtonClearPssi()
+{
+	vector<CString> vecSqlList;
+
+	vecSqlList.push_back("Delete from Image");
+	vecSqlList.push_back("Delete from Series");
+	vecSqlList.push_back("Delete from SMS");
+	vecSqlList.push_back("Delete from MWLView");
+	vecSqlList.push_back("Delete from MWLOrder");
+	vecSqlList.push_back("Delete from Study");
+	vecSqlList.push_back("Delete from Patient");
+
+	m_pDBConn->RunTransaction(vecSqlList);
+}
+
+
+void CTinySMMSDlg::OnBnClickedButtonSms1()
+{
+	m_strCurrentTable = "SMS";
+	RunSQL("SELECT * FROM SMS ORDER BY SUID",TRUE);	
+}
+
+
+void CTinySMMSDlg::OnBnClickedButtonWmlorder()
+{
+	m_strCurrentTable = "MWLOrder";
+	RunSQL("SELECT * FROM MWLOrder ORDER BY MWLOrderKey",TRUE);	
+}
+
+
+void CTinySMMSDlg::OnBnClickedButtonMwlview()
+{
+	m_strCurrentTable = "MWLView";
+	RunSQL("SELECT * FROM MWLView ORDER BY MWLViewKey",TRUE);	
+}
+
+CString CTinySMMSDlg::GetPatientGUID( int nIDType, const CString& strUID )
+{
+	CString strSql;
+
+	m_nViewPssiClickedType = nIDType;
+	m_strViewPssiClickeUID = strUID;
+
+	if (nIDType == WM_MSG_QUERY_PATIENT)
+	{
+		return strUID;	
+	}
+	else if (nIDType == WM_MSG_QUERY_STUDY || nIDType == WM_MSG_QUERY_SMS)
+	{
+		strSql = "SELECT Study.PatientGUID from Study where Study.StudyInstanceUID = '" + strUID + "'";
+	}
+	else if (nIDType == WM_MSG_QUERY_SERIES)
+	{
+		strSql = "SELECT Study.PatientGUID from Series, Study where Series.StudyInstanceUID = Study.StudyInstanceUID and Series.SeriesInstanceUID = '" + strUID + "'";
+	}
+	else 
+	{
+		strSql = "SELECT Study.PatientGUID from Image, Series, Study where Image.SeriesInstanceUID = Series.SeriesInstanceUID and Series.StudyInstanceUID = Study.StudyInstanceUID and Image.SopInstanceUID = '" + strUID + "'";
+	}
+
+	CADORecordset dbrs(m_pDBConn);
+	if(!dbrs.Open((LPCTSTR)strSql)) 
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return "";
+	}
+
+
+	CString strPatientGUID;
+	if(!dbrs.IsEOF())
+	{
+		BOOL B = dbrs.GetFieldValue("PatientGUID", strPatientGUID);
+	}
+	dbrs.Close();
+
+	return strPatientGUID;
+}
+
+vector<CString> CTinySMMSDlg::GetPssiDetail( const CString& strPatientGUID )
+{
+	vector<CString> vecPssi;
+	CString strSql;
+
+	strSql = "SELECT PatientName, PatientID FROM Patient WHERE PatientGUID = '" + strPatientGUID + "'";
+
+	CADORecordset dbrs(m_pDBConn);
+	if(!dbrs.Open((LPCTSTR)strSql)) 
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return vecPssi;
+	}
+
+
+	CString strPatientName, strPatientID;
+	if(!dbrs.IsEOF())
+	{
+		dbrs.GetFieldValue("PatientName", strPatientName);
+		dbrs.GetFieldValue("PatientID", strPatientID);
+	}
+	dbrs.Close();
+
+	vecPssi.push_back("Patient - Name : " + strPatientName + ", ID : " + strPatientID);
+
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	strSql = "SELECT StudyInstanceUID, StudyDate, StudyTime, AccessionNo, ScanStatus FROM Study WHERE PatientGUID = '" + strPatientGUID + "'";
+	if(!dbrs.Open((LPCTSTR)strSql)) 
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return vecPssi;
+	}
+
+
+	CString strStudyInstnaceUID, strStudyDate, strStudyTime, strAccessionNo;
+	int nScanStatus;
+	while(!dbrs.IsEOF())
+	{
+		dbrs.GetFieldValue("StudyInstanceUID", strStudyInstnaceUID);
+		dbrs.GetFieldValue("StudyDate", strStudyDate);
+		dbrs.GetFieldValue("StudyTime", strStudyTime);
+		dbrs.GetFieldValue("AccessionNo", strAccessionNo);
+		dbrs.GetFieldValue("ScanStatus", nScanStatus);
+
+		CString strPrefix = "    ";
+		if (m_nViewPssiClickedType == WM_MSG_QUERY_STUDY && m_strViewPssiClickeUID == strStudyInstnaceUID)
+			strPrefix = "  * ";
+
+		CString strLine;
+		strLine.Format("%sStudy - Date : %s, Time : %s, AccessionNo : %s, ScanStatus : %d", strPrefix, strStudyDate, strStudyTime, strAccessionNo, nScanStatus);
+		vecPssi.push_back(strLine);
+		
+		vector<CString> vecSMS = GetSMSDetail(strStudyInstnaceUID);
+		for (int i = 0; i < vecSMS.size(); i ++)
+		{
+			vecPssi.push_back(vecSMS[i]);
+		}
+
+		vector<CString> vecSeries = GetSeriesDetail(strStudyInstnaceUID);
+		for (int i = 0; i < vecSeries.size(); i ++)
+		{
+			vecPssi.push_back(vecSeries[i]);
+		}
+
+		dbrs.MoveNext();
+	}
+	dbrs.Close();
+
+	return vecPssi;
+}
+
+vector<CString> CTinySMMSDlg::GetSMSDetail( const CString& strStudyInstnaceUID )
+{
+	vector<CString> vecSMS;
+	CString strSql;
+
+	strSql = "SELECT sms_name, sms_type, status, compressed FROM SMS WHERE SUID = '" + strStudyInstnaceUID + "'";
+
+	CADORecordset dbrs(m_pDBConn);
+	if(!dbrs.Open((LPCTSTR)strSql)) 
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return vecSMS;
+	}
+
+
+	CString strSMSName;
+	int nType, nStatus, nCompressed;
+	while(!dbrs.IsEOF())
+	{
+		dbrs.GetFieldValue("sms_name", strSMSName);
+		dbrs.GetFieldValue("sms_type", nType);
+		dbrs.GetFieldValue("status", nStatus);
+		dbrs.GetFieldValue("compressed", nCompressed);
+
+		CString strPrefix = "        ";
+		if (m_nViewPssiClickedType == WM_MSG_QUERY_SMS && m_strViewPssiClickeUID == strStudyInstnaceUID)
+			strPrefix = "      * ";
+
+		CString strLine;
+		strLine.Format("%sSMS - Name : %s, Type : %d, Status : %d, Compressed : %d", strPrefix, strSMSName, nType, nStatus, nCompressed);
+		vecSMS.push_back(strLine);
+
+		dbrs.MoveNext();
+	}
+	dbrs.Close();
+
+
+
+	return vecSMS;
+}
+
+vector<CString> CTinySMMSDlg::GetSeriesDetail( const CString& strStudyInstnaceUID )
+{
+	vector<CString> vecSeries;
+	CString strSql;
+
+	strSql = "SELECT SeriesInstanceUID, BodyPart, ViewPosition, Modality, StationName FROM Series WHERE StudyInstanceUID = '" + strStudyInstnaceUID + "'";
+
+	CADORecordset dbrs(m_pDBConn);
+	if(!dbrs.Open((LPCTSTR)strSql)) 
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return vecSeries;
+	}
+
+
+	CString strSeriesInstanceUID, strBodyPart, strViewPosition, strModality, strStationName;
+	while(!dbrs.IsEOF())
+	{
+		dbrs.GetFieldValue("SeriesInstanceUID", strSeriesInstanceUID);
+		dbrs.GetFieldValue("BodyPart", strBodyPart);
+		dbrs.GetFieldValue("ViewPosition", strViewPosition);
+		dbrs.GetFieldValue("Modality", strModality);
+		dbrs.GetFieldValue("StationName", strStationName);
+
+		CString strPrefix = "        ";
+		if (m_nViewPssiClickedType == WM_MSG_QUERY_SERIES && m_strViewPssiClickeUID == strSeriesInstanceUID)
+			strPrefix = "      * ";
+
+		vecSeries.push_back(strPrefix + "Series - BodyPart : " + strBodyPart + ", ViewPosition : " + strViewPosition + ", Modality : " + strModality + ", StationName : " + strStationName);
+
+		vector<CString> vecImage = GetImageDetail(strSeriesInstanceUID);
+		for (int i = 0; i < vecImage.size(); i ++)
+		{
+			vecSeries.push_back(vecImage[i]);
+		}
+
+		dbrs.MoveNext();
+	}
+	dbrs.Close();
+
+
+
+	return vecSeries;
+}
+
+void CTinySMMSDlg::AddViewPssiMenu( CMenu* pMenu, vector<CString> vecMenuText )
+{
+	for (int i = 0; i < vecMenuText.size(); i ++)
+	{
+		pMenu->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_VIEW_PSSI, vecMenuText[i]);
+	}
+	
+}
+
+vector<CString> CTinySMMSDlg::GetImageDetail( const CString& strSeriesInstanceUID )
+{
+	vector<CString> vecImage;
+	CString strSql;
+
+	strSql = "SELECT SOPInstanceUID, ImageNo, ImageRows, ImageColumns, ObjectFile FROM Image WHERE SeriesInstanceUID = '" + strSeriesInstanceUID + "'";
+
+	CADORecordset dbrs(m_pDBConn);
+	if(!dbrs.Open((LPCTSTR)strSql)) 
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return vecImage;
+	}
+
+
+	CString strSOPInstanceUID, strImageNo, strObjectFile;
+	int nImageRows, nImageColumns;
+	while(!dbrs.IsEOF())
+	{
+		dbrs.GetFieldValue("SOPInstanceUID", strSOPInstanceUID);
+		dbrs.GetFieldValue("ImageNo", strImageNo);
+		dbrs.GetFieldValue("ImageRows", nImageRows);
+		dbrs.GetFieldValue("ImageColumns", nImageColumns);
+		dbrs.GetFieldValue("ObjectFile", strObjectFile);
+
+		CString strPrefix = "            ";
+		if (m_nViewPssiClickedType == WM_MSG_QUERY_IMAGE && m_strViewPssiClickeUID == strSOPInstanceUID)
+			strPrefix = "          * ";
+
+		CString strLine;
+		strLine.Format(strPrefix + "Image - ImageNo : %s, Width : %d, Height : %d, ObjectFile : %s", strImageNo, nImageColumns, nImageRows, strObjectFile);
+		vecImage.push_back(strLine);
+
+		dbrs.MoveNext();
+	}
+	dbrs.Close();
+
+
+
+	return vecImage;
 }

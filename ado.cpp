@@ -1087,6 +1087,24 @@ BOOL CADODatabase::Execute(LPCTSTR lpstrExec)
 	}
 }
 
+BOOL CADODatabase::RunTransaction( vector<CString> vecSqlList )
+{
+	BeginTransaction();
+
+	int nLen = vecSqlList.size();
+	for (int i = 0; i < nLen; i++)
+	{
+		if (!Execute(vecSqlList[i]))
+		{
+			RollbackTransaction();
+			return FALSE;
+		}
+	}
+
+	CommitTransaction();
+	return TRUE;
+}
+
 BOOL CADORecordset::RecordBinding(CADORecordBinding &pAdoRecordBinding)
 {
 	HRESULT hr;

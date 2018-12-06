@@ -26,12 +26,19 @@ class CTinySMMSDlg : public CDialog, public ICustomListUser
 {
 // Construction
 public:
+	vector<CString> GetSeriesDetail( const CString& strStudyInstnaceUID );
+	vector<CString> GetImageDetail( const CString& strSeriesInstanceUID );
+	void AddViewPssiMenu( CMenu* pMenu, vector<CString> vecMenuText );
+	vector<CString> GetPssiDetail(const CString& strPatientGUID);
+	CString GetPatientGUID(int nIDType, const CString& strUID);
 	CString	m_strCurrentTable;
 	BOOL RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToCommandList=TRUE );
 	CString GetWhereStatement(int nRow);
 	Columns* m_pAllColumns;
 	CADODatabase* m_pDBConn;
 	CString	m_strDbConnStr;
+	int m_nViewPssiClickedType;
+	CString m_strViewPssiClickeUID;
 	void LoadAllTables();
 	CString	GetTextByColumnName(CCustomListCtrl* pList, int nRow, const CString& strColumnName);
 	CTinySMMSDlg(CWnd* pParent = NULL);	// standard constructor
@@ -91,6 +98,12 @@ public:
 	CEdit m_editSQL;
 	afx_msg void OnBnClickedButtonReload();
 	afx_msg void OnBnClickedButtonUserProfile();
+	void DeletePSSI( int nType, CString strUID );
+	afx_msg void OnBnClickedButtonClearPssi();
+	afx_msg void OnBnClickedButtonSms1();
+	afx_msg void OnBnClickedButtonWmlorder();
+	afx_msg void OnBnClickedButtonMwlview();
+	vector<CString> GetSMSDetail( const CString& strStudyInstnaceUID );
 };
 
 //{{AFX_INSERT_LOCATION}}

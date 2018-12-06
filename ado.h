@@ -25,6 +25,9 @@ using namespace ADOCG;
 
 #include "icrsint.h"
 
+#include <vector>
+using namespace std;
+
 class CADOCommand;
 
 struct CADOFieldInfo
@@ -99,6 +102,7 @@ public:
 	void BeginTransaction();		
 	void CommitTransaction(); 		
 	void RollbackTransaction(); 
+	BOOL RunTransaction(vector<CString> vecSqlList);
 	
 	BOOL IsOpen();
 	void Close();
