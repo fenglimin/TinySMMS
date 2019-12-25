@@ -917,6 +917,11 @@ void CTinySMMSDlg::DeletePSSI( int nType, CString strUID )
 
 void CTinySMMSDlg::OnBnClickedButtonClearPssi()
 {
+	if (AfxMessageBox("Are you sure to clear Pssi?", MB_YESNO) == IDNO)
+	{
+		return;
+	}
+
 	vector<CString> vecSqlList;
 
 	vecSqlList.push_back("Delete from Image");

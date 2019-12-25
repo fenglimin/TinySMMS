@@ -21,6 +21,7 @@
 #define IDC_EDIT_USERNAME               1007
 #define IDC_COMBO_PASSWORD              1008
 #define IDC_BUTTON_PATIENT              1009
+#define IDC_EDIT_DATABASE2              1009
 #define IDC_BUTTON_STUDY                1010
 #define IDC_BUTTON_SERIES               1011
 #define IDC_BUTTON_IMAGE                1012
@@ -47,7 +48,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        139
+#define _APS_NEXT_RESOURCE_VALUE        140
 #define _APS_NEXT_COMMAND_VALUE         32776
 #define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           101
