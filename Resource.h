@@ -22,6 +22,7 @@
 #define IDC_COMBO_PASSWORD              1008
 #define IDC_BUTTON_PATIENT              1009
 #define IDC_EDIT_DATABASE2              1009
+#define IDC_EDIT_PROVIDER               1009
 #define IDC_BUTTON_STUDY                1010
 #define IDC_BUTTON_SERIES               1011
 #define IDC_BUTTON_IMAGE                1012

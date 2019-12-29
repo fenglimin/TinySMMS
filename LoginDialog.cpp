@@ -17,6 +17,7 @@ static char THIS_FILE[] = __FILE__;
 
 CLoginDialog::CLoginDialog(CWnd* pParent /*=NULL*/)
 	: CDialog(CLoginDialog::IDD, pParent)
+	, m_strProvider(_T(""))
 {
 	//{{AFX_DATA_INIT(CLoginDialog)
 	m_strDatabase = _T("");
@@ -35,6 +36,7 @@ void CLoginDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_DATABASE, m_strDatabase);
 	DDX_Text(pDX, IDC_EDIT_SERVERNAME, m_strServerName);
 	DDX_Text(pDX, IDC_EDIT_USERNAME, m_strUserName);
+	DDX_Text(pDX, IDC_EDIT_PROVIDER, m_strProvider);
 	//}}AFX_DATA_MAP
 }
 
@@ -53,7 +55,8 @@ void CLoginDialog::OnOK()
 	UpdateData();
 
 	CString strDbConnStr = "Password=" + m_strPassword +
-					 ";Provider=SQLNCLI10;Data Source=" + m_strServerName +
+					 ";Provider=" + m_strProvider + 
+					 ";Data Source=" + m_strServerName +
 					 ";Initial Catalog=" + m_strDatabase +
 					 ";User ID=" + m_strUserName + ";ole db services = -2;";
 	
@@ -77,6 +80,7 @@ BOOL CLoginDialog::OnInitDialog()
 	m_strServerName = "localhost\\GCPACSWS";
 	m_strDatabase = "WGGC";
 	m_strUserName = "pdchi";
+	m_strProvider = "SQLNCLI10";
 
 	m_comPassword.SetCurSel(0);
 	

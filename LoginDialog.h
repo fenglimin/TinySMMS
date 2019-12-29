@@ -15,7 +15,7 @@ class CLoginDialog : public CDialog
 // Construction
 public:
 	CADODatabase* m_pDBConn;
-	CString m_strPassword;
+	
 	CLoginDialog(CWnd* pParent = NULL);   // standard constructor
 
 // Dialog Data
@@ -25,6 +25,7 @@ public:
 	CString	m_strDatabase;
 	CString	m_strServerName;
 	CString	m_strUserName;
+	CString m_strPassword;
 	//}}AFX_DATA
 
 
@@ -44,6 +45,8 @@ protected:
 	virtual BOOL OnInitDialog();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
+public:
+	CString m_strProvider;
 };
 
 //{{AFX_INSERT_LOCATION}}
