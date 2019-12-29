@@ -99,6 +99,16 @@ void CTinySMMSDlg::DoDataExchange(CDataExchange* pDX)
 	//{{AFX_DATA_MAP(CTinySMMSDlg)
 	DDX_Control(pDX, IDC_LIST_TABS, m_listTables);
 	DDX_Control(pDX, IDC_LIST_RESULT, m_listResult);
+	DDX_Control(pDX, IDC_LIST_PATIENT, m_listPatient);
+	DDX_Control(pDX, IDC_LIST_STUDY, m_listStudy); 
+	DDX_Control(pDX, IDC_LIST_SERIES, m_listSeries); 
+	DDX_Control(pDX, IDC_LIST_IMAGE, m_listImage); 
+	DDX_Control(pDX, IDC_LIST_SMS, m_listSms);
+	DDX_Control(pDX, IDC_LIST_MWLORDER, m_listMwlOrder);
+	DDX_Control(pDX, IDC_LIST_MWLVIEW, m_listMwlView);
+	DDX_Control(pDX, IDC_LIST_USER_PROFILE, m_listUserProfile);
+	DDX_Control(pDX, IDC_LIST_ROLE_PROFILE, m_listRoleProfile);
+	DDX_Control(pDX, IDC_LIST_SYSTEM_PROFILE, m_listSystemProfile);
 	DDX_Text(pDX, IDC_EDIT_SQL, m_strSQL);
 	//}}AFX_DATA_MAP
 	DDX_Control(pDX, IDC_EDIT_SQL, m_editSQL);
@@ -115,9 +125,6 @@ BEGIN_MESSAGE_MAP(CTinySMMSDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_STUDY, OnButtonStudy)
 	ON_BN_CLICKED(IDC_BUTTON_SERIES, OnButtonSeries)
 	ON_BN_CLICKED(IDC_BUTTON_IMAGE, OnButtonImage)
-	ON_BN_CLICKED(IDC_BUTTON_SMS, OnButtonSms)
-	ON_BN_CLICKED(IDC_BUTTON_WEBREPORT, OnButtonWebreport)
-	ON_BN_CLICKED(IDC_BUTTON_CLEARALL, OnButtonClearall)
 	//}}AFX_MSG_MAP
 	ON_COMMAND(ID_POPUP_DELETEALLSELECTEDROW, &CTinySMMSDlg::OnPopupDeleteallselectedrow)
 	ON_COMMAND(ID_POPUP_INSERTCOPY32775, &CTinySMMSDlg::OnPopupInsertcopy32775)
@@ -127,6 +134,8 @@ BEGIN_MESSAGE_MAP(CTinySMMSDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_SMS1, &CTinySMMSDlg::OnBnClickedButtonSms1)
 	ON_BN_CLICKED(IDC_BUTTON_WMLORDER, &CTinySMMSDlg::OnBnClickedButtonWmlorder)
 	ON_BN_CLICKED(IDC_BUTTON_MWLVIEW, &CTinySMMSDlg::OnBnClickedButtonMwlview)
+	ON_BN_CLICKED(IDC_BUTTON_ROLE_PROFILE, &CTinySMMSDlg::OnBnClickedButtonRoleProfile)
+	ON_BN_CLICKED(IDC_BUTTON_SYSTEM_PROFILE, &CTinySMMSDlg::OnBnClickedButtonSystemProfile)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -169,18 +178,31 @@ BOOL CTinySMMSDlg::OnInitDialog()
 
 	m_pDBConn = loginDlg.m_pDBConn;
 
-	m_listResult.SetUser(this);
-	m_listResult.SetHeaderHeight(48);
-	m_listResult.SetRowHeigt(24);
-	m_listResult.AddDefaultRowColor(RGB(207,207,207));
-	m_listResult.AddDefaultRowColor(RGB(239,239,239));
-//	m_listResult.SetFont(GetFont());
+	m_mapTableResult["Patient"] = &m_listPatient;
+	m_mapTableResult["Study"] = &m_listStudy; 
+	m_mapTableResult["Series"] = &m_listSeries; 
+	m_mapTableResult["Image"] = &m_listImage; 
+	m_mapTableResult["SMS"] = &m_listSms;
+	m_mapTableResult["MwlOrder"] = &m_listMwlOrder;
+	m_mapTableResult["MwlView"] = &m_listMwlView;
+	m_mapTableResult["UserProfile"] = &m_listUserProfile;
+	m_mapTableResult["RoleProfile"] = &m_listRoleProfile;
+	m_mapTableResult["SystemProfile"] = &m_listSystemProfile;
+	m_mapTableResult["OtherTable"] = &m_listResult;
 
+	for (map<CString, CCustomListCtrl*>::iterator it = m_mapTableResult.begin(); it != m_mapTableResult.end(); it++)
+	{
+		it->second->SetUser(this);
+		it->second->SetHeaderHeight(48);
+		it->second->SetRowHeigt(24);
+		it->second->AddDefaultRowColor(RGB(207, 207, 207));
+		it->second->AddDefaultRowColor(RGB(239, 239, 239));
+		it->second->SetMultipleSelection(TRUE);
+		it->second->SetShowSelection(TRUE);
+		it->second->m_defaultListFormat.cellType = cellTextEdit;
 
-	m_listResult.SetMultipleSelection(TRUE);
-	m_listResult.SetShowSelection(TRUE);
-
-	m_listResult.m_defaultListFormat.cellType = cellTextEdit;
+		it->second->ShowWindow(SW_HIDE);
+	}
 
 	LoadAllTables();
 	
@@ -304,69 +326,46 @@ void CTinySMMSDlg::LoadAllTables()
 
 void CTinySMMSDlg::OnDblclkListTabs() 
 {
-	m_listTables.GetText(m_listTables.GetCurSel(), m_strCurrentTable);
-
+	CString strTable;
+	m_listTables.GetText(m_listTables.GetCurSel(), strTable);
+	ChangeCurrentTable(strTable);
 	RunSQL("SELECT * FROM " + m_strCurrentTable,TRUE);
-	
 }
 
 void CTinySMMSDlg::OnButtonPatient() 
 {
-	m_strCurrentTable = "Patient";
-	RunSQL("SELECT * FROM Patient ORDER BY SerialNo",TRUE);
-	
+	ChangeCurrentTable("Patient");
+	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+	{
+		RunSQL("SELECT * FROM Patient ORDER BY SerialNo", TRUE);
+	}
 }
 
 void CTinySMMSDlg::OnButtonStudy() 
 {
-	m_strCurrentTable = "Study";
-	RunSQL("SELECT * FROM Study ORDER BY SerialNo",TRUE);
-	
+	ChangeCurrentTable("Study");
+	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+	{
+		RunSQL("SELECT * FROM Study ORDER BY SerialNo", TRUE);
+	}	
 }
 
 void CTinySMMSDlg::OnButtonSeries() 
 {
-	m_strCurrentTable = "Series";
-	RunSQL("SELECT * FROM Series ORDER BY SerialNo",TRUE);	
+	ChangeCurrentTable("Series");
+	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+	{
+		RunSQL("SELECT * FROM Series ORDER BY SerialNo", TRUE);
+	}
 }
 
 void CTinySMMSDlg::OnButtonImage() 
 {
-	m_strCurrentTable = "Image";
-	RunSQL("SELECT * FROM Image ORDER BY SerialNo",TRUE);	
-	
-}
-
-void CTinySMMSDlg::OnButtonSms() 
-{
-	m_strCurrentTable = "SystemProfile";
-	RunSQL("SELECT * FROM SystemProfile",TRUE);	
-	
-}
-
-void CTinySMMSDlg::OnButtonWebreport() 
-{
-	m_strCurrentTable = "RoleProfile";
-	RunSQL("SELECT * FROM RoleProfile",TRUE);	
-	
-}
-
-void CTinySMMSDlg::OnButtonClearall() 
-{
-	//RunSQL("Delete from Image");	
-	//RunSQL("Delete from Series");	
-	//RunSQL("Delete from SMS");	
-	//RunSQL("Delete from WebReport");	
-	//RunSQL("Delete from Study");	
-	//RunSQL("Delete from Patient");	
-
-	int i = sizeof(double);
-	i = sizeof(float);
-	i = 1;
-
-	int aa = m_listResult.GetScrollPos(SB_VERT);
-
-	aa = m_listResult.GetCountPerPage();
+	ChangeCurrentTable("Image");
+	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+	{
+		RunSQL("SELECT * FROM Image ORDER BY SerialNo", TRUE);
+	}
 }
 
 BOOL CTinySMMSDlg::RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToCommandList)
@@ -389,15 +388,15 @@ BOOL CTinySMMSDlg::RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToComman
 			return FALSE;
 		}
 		
-		m_listResult.DeleteAllItems();
+		m_pCurrentList->DeleteAllItems();
 
 		
-		int nFieldCount = m_listResult.m_ctrlHeader.GetItemCount();
+		int nFieldCount = m_pCurrentList->m_ctrlHeader.GetItemCount();
 		if ( bColumnsChange )
 		{
-			while ( m_listResult.DeleteColumn(0) );
-			m_listResult.m_ColumnStates.RemoveAll();
-			m_listResult.m_ctrlHeader.Invalidate(TRUE);
+			while ( m_pCurrentList->DeleteColumn(0) );
+			m_pCurrentList->m_ColumnStates.RemoveAll();
+			m_pCurrentList->m_ctrlHeader.Invalidate(TRUE);
 
 			CustomColumn		gridColumn;
 			CustomColumnList	gridColumnsList;
@@ -447,19 +446,19 @@ BOOL CTinySMMSDlg::RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToComman
 				strColumnOrder += strOrder;
 			}
 
-			m_listResult.SetColumnInfo(gridColumnsList, strColumnOrder);
-			m_listResult.m_ctrlHeader.SetSortArrow(0, TRUE);
+			m_pCurrentList->SetColumnInfo(gridColumnsList, strColumnOrder);
+			m_pCurrentList->m_ctrlHeader.SetSortArrow(0, TRUE);
 		}
 
 		int nRow = 0;
 		while(!dbrs.IsEOF())
 		{
-			nRow = m_listResult.AppendRow();
+			nRow = m_pCurrentList->AppendRow();
 			for ( int i = 0; i < nFieldCount; i++)
 			{
 				CString strText;
 				BOOL B = dbrs.GetFieldValue(i, strText, "");
-				m_listResult.SetCell(nRow,i, strText);
+				m_pCurrentList->SetCell(nRow,i, strText);
 
 			}
 			dbrs.MoveNext();
@@ -505,7 +504,7 @@ BOOL CTinySMMSDlg::OnNotify( WPARAM wParam, LPARAM lParam, LRESULT* pResult )
 
 BOOL CTinySMMSDlg::OnCellEditorDisplayed(CListCtrl* pListCtrl, int nRow, int nCol, CellFormat* pCellFormat, CString& strValidChars)
 {
-	CustomColumn column = m_listResult.m_ctrlHeader.m_gridColumnsList[nCol];
+	CustomColumn column = m_pCurrentList->m_ctrlHeader.m_gridColumnsList[nCol];
 	if ( column.compareType == compareAsNumber )
 	{
 		strValidChars = _T("0123456789.-");
@@ -525,16 +524,16 @@ BOOL CTinySMMSDlg::OnCellComboDisplayed(CListCtrl* pListCtrl, int nRow, int nCol
 
 BOOL CTinySMMSDlg::OnFilterTextChanged(CListCtrl* pListCtrl, int nCol, const char* szNewText)
 {
-	int nColCount = m_listResult.m_ctrlHeader.GetItemCount();
+	int nColCount = m_pCurrentList->m_ctrlHeader.GetItemCount();
 	CString strWhere;
 	CString strSelect = "SELECT ";
 
 	for ( int i = 0; i < nColCount; i++)
 	{
-		CustomColumn column = m_listResult.m_ctrlHeader.m_gridColumnsList[i];
+		CustomColumn column = m_pCurrentList->m_ctrlHeader.m_gridColumnsList[i];
 		strSelect += column.strHeaderCaption + ",";
 
-		CString strFilterText = m_listResult.m_ctrlHeader.GetFilterText(i);
+		CString strFilterText = m_pCurrentList->m_ctrlHeader.GetFilterText(i);
 		if ( strFilterText == "")
 			continue;
 		strFilterText.Replace("'", "''");
@@ -567,7 +566,7 @@ BOOL CTinySMMSDlg::OnCellTextChanged(CListCtrl* pListCtrl, int nRow, int nCol, C
 	CString strWhere = GetWhereStatement(nRow);
 	CString strUpdate = _T("UPDATE ") + m_strCurrentTable + _T(" SET ");
 
-	CustomColumn column = m_listResult.m_ctrlHeader.m_gridColumnsList[nCol];
+	CustomColumn column = m_pCurrentList->m_ctrlHeader.m_gridColumnsList[nCol];
 	CString strTemp = strNewValue;
 	strTemp.Replace("'", "''");
 
@@ -610,7 +609,7 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 	m_nClickedRow = nRow;
 
 	CMenu menu;
-	m_listResult.ClientToScreen(&point);
+	m_pCurrentList->ClientToScreen(&point);
 	menu.LoadMenu(IDR_MENU1);
 
 	CString strUpTable, strDownTable, strUpTableKeyColumn, strDownTableKeyColumn;
@@ -749,7 +748,7 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 	case WM_MSG_DELETE_STUDY:
 	case WM_MSG_DELETE_PATIENT:
 		DeletePSSI(nResult, strKeyValueDown);
-		m_listResult.DeleteItem(nRow);
+		m_pCurrentList->DeleteItem(nRow);
 		break;
 	}
 	return TRUE;
@@ -757,10 +756,10 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 
 void CTinySMMSDlg::OnPopupDeleteallselectedrow()
 {
-	POSITION pos = m_listResult.GetFirstSelectedItemPosition();
+	POSITION pos = m_pCurrentList->GetFirstSelectedItemPosition();
 	while ( pos )
 	{
-		int nRow = m_listResult.GetNextSelectedItem(pos);
+		int nRow = m_pCurrentList->GetNextSelectedItem(pos);
 
 		CString strSQL = _T("DELETE ") + m_strCurrentTable + GetWhereStatement(nRow);
 		UpdateData(FALSE);
@@ -772,8 +771,8 @@ void CTinySMMSDlg::OnPopupDeleteallselectedrow()
 			return;
 		}
 		
-		m_listResult.DeleteItem(nRow);
-		pos = m_listResult.GetFirstSelectedItemPosition();
+		m_pCurrentList->DeleteItem(nRow);
+		pos = m_pCurrentList->GetFirstSelectedItemPosition();
 
 	}
 	
@@ -792,10 +791,10 @@ void CTinySMMSDlg::OnPopupInsertcopy32775()
 		UpdateData(FALSE);
 		if ( RunSQL(dlg.m_strSQL,FALSE) )
 		{
-			int nRow = m_listResult.InsertRow(m_nClickedRow);
+			int nRow = m_pCurrentList->InsertRow(m_nClickedRow);
 			for ( int i = 0; i < (int)dlg.m_vecItems.size(); i++)
 			{
-				m_listResult.SetCell(nRow, i, dlg.m_vecItems[i]);
+				m_pCurrentList->SetCell(nRow, i, dlg.m_vecItems[i]);
 			}
 		}
 	}
@@ -805,18 +804,18 @@ void CTinySMMSDlg::OnPopupInsertcopy32775()
 CString CTinySMMSDlg::GetWhereStatement(int nRow)
 {
 	
-	int nColCount = m_listResult.m_ctrlHeader.GetItemCount();
-	if ( nRow < 0 || nRow >= m_listResult.GetItemCount() )
+	int nColCount = m_pCurrentList->m_ctrlHeader.GetItemCount();
+	if ( nRow < 0 || nRow >= m_pCurrentList->GetItemCount() )
 		return _T("");
 	
 	CString strWhere;
 
 	for ( int i = 0; i < nColCount; i++)
 	{
-		CustomColumn column = m_listResult.m_ctrlHeader.m_gridColumnsList[i];
+		CustomColumn column = m_pCurrentList->m_ctrlHeader.m_gridColumnsList[i];
 		CString strTemp;
 
-		CString strOldCellValue = m_listResult.GetItemText(nRow,i);
+		CString strOldCellValue = m_pCurrentList->GetItemText(nRow,i);
 		if ( strOldCellValue.IsEmpty() )
 			continue;
 
@@ -852,8 +851,11 @@ void CTinySMMSDlg::OnBnClickedButtonReload()
 
 void CTinySMMSDlg::OnBnClickedButtonUserProfile()
 {
-	m_strCurrentTable = "UserProfile";
-	RunSQL("SELECT * FROM UserProfile",TRUE);
+	ChangeCurrentTable("UserProfile");
+	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+	{
+		RunSQL("SELECT * FROM UserProfile", TRUE);
+	}
 }
 
 CString CTinySMMSDlg::GetTextByColumnName( CCustomListCtrl* pList, int nRow, const CString& strColumnName )
@@ -938,22 +940,31 @@ void CTinySMMSDlg::OnBnClickedButtonClearPssi()
 
 void CTinySMMSDlg::OnBnClickedButtonSms1()
 {
-	m_strCurrentTable = "SMS";
-	RunSQL("SELECT * FROM SMS ORDER BY SUID",TRUE);	
+	ChangeCurrentTable("SMS");
+	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+	{
+		RunSQL("SELECT * FROM SMS ORDER BY SUID", TRUE);
+	}
 }
 
 
 void CTinySMMSDlg::OnBnClickedButtonWmlorder()
 {
-	m_strCurrentTable = "MWLOrder";
-	RunSQL("SELECT * FROM MWLOrder ORDER BY MWLOrderKey",TRUE);	
+	ChangeCurrentTable("MWLOrder");
+	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+	{
+		RunSQL("SELECT * FROM MWLOrder ORDER BY MWLOrderKey", TRUE);
+	}
 }
 
 
 void CTinySMMSDlg::OnBnClickedButtonMwlview()
 {
-	m_strCurrentTable = "MWLView";
-	RunSQL("SELECT * FROM MWLView ORDER BY MWLViewKey",TRUE);	
+	ChangeCurrentTable("MWLView");
+	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+	{
+		RunSQL("SELECT * FROM MWLView ORDER BY MWLViewKey", TRUE);
+	}
 }
 
 CString CTinySMMSDlg::GetPatientGUID( int nIDType, const CString& strUID )
@@ -1110,6 +1121,32 @@ vector<CString> CTinySMMSDlg::GetSMSDetail( const CString& strStudyInstnaceUID )
 	return vecSMS;
 }
 
+void CTinySMMSDlg::ChangeCurrentTable(const CString & strTableName)
+{
+	BOOL bFind = FALSE;
+	for (map<CString, CCustomListCtrl*>::iterator it = m_mapTableResult.begin(); it != m_mapTableResult.end(); it++)
+	{
+		if (it->first.CompareNoCase(strTableName) == 0)
+		{
+			m_strCurrentTable = strTableName;
+			m_pCurrentList = it->second;
+			m_pCurrentList->ShowWindow(SW_SHOW);
+			bFind = TRUE;
+		}
+		else
+		{
+			it->second->ShowWindow(SW_HIDE);
+		}
+	}
+
+	if (!bFind)
+	{
+		m_strCurrentTable = strTableName;
+		m_pCurrentList = &m_listResult;
+		m_pCurrentList->ShowWindow(SW_SHOW);
+	}
+}
+
 vector<CString> CTinySMMSDlg::GetSeriesDetail( const CString& strStudyInstnaceUID )
 {
 	vector<CString> vecSeries;
@@ -1204,4 +1241,24 @@ vector<CString> CTinySMMSDlg::GetImageDetail( const CString& strSeriesInstanceUI
 
 
 	return vecImage;
+}
+
+
+void CTinySMMSDlg::OnBnClickedButtonRoleProfile()
+{
+	ChangeCurrentTable("RoleProfile");
+	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+	{
+		RunSQL("SELECT * FROM RoleProfile", TRUE);
+	}
+}
+
+
+void CTinySMMSDlg::OnBnClickedButtonSystemProfile()
+{
+	ChangeCurrentTable("SystemProfile");
+	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+	{
+		RunSQL("SELECT * FROM SystemProfile", TRUE);
+	}
 }

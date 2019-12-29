@@ -26,8 +26,8 @@
 #define IDC_BUTTON_STUDY                1010
 #define IDC_BUTTON_SERIES               1011
 #define IDC_BUTTON_IMAGE                1012
-#define IDC_BUTTON_SMS                  1013
-#define IDC_BUTTON_WEBREPORT            1014
+#define IDC_BUTTON_SYSTEM_PROFILE       1013
+#define IDC_BUTTON_ROLE_PROFILE         1014
 #define IDC_BUTTON_CLEARALL             1015
 #define IDC_BUTTON_WEBREPORT2           1016
 #define IDC_BUTTON_USER_PROFILE         1016
@@ -39,6 +39,16 @@
 #define IDC_BUTTON_WMLORDER             1021
 #define IDC_BUTTON4                     1022
 #define IDC_BUTTON_MWLVIEW              1022
+#define IDC_LIST_PATIENT                1027
+#define IDC_LIST_STUDY                  1028
+#define IDC_LIST_SERIES                 1029
+#define IDC_LIST_IMAGE                  1030
+#define IDC_LIST_SMS                    1031
+#define IDC_LIST_MWLORDER               1032
+#define IDC_LIST_MWLVIEW                1033
+#define IDC_LIST_USER_PROFILE           1034
+#define IDC_LIST_ROLE_PROFILE           1035
+#define IDC_LIST_SYSTEM_PROFILE         1036
 #define ID_POPUP_DELETEROW              32771
 #define ID_POPUP_INSERTCOPY             32772
 #define ID_POPUP_AAAAA                  32773
@@ -49,7 +59,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        140
+#define _APS_NEXT_RESOURCE_VALUE        141
 #define _APS_NEXT_COMMAND_VALUE         32776
 #define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           101

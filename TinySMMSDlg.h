@@ -26,6 +26,7 @@ class CTinySMMSDlg : public CDialog, public ICustomListUser
 {
 // Construction
 public:
+	void ChangeCurrentTable(const CString& strTableName);
 	vector<CString> GetSeriesDetail( const CString& strStudyInstnaceUID );
 	vector<CString> GetImageDetail( const CString& strSeriesInstanceUID );
 	void AddViewPssiMenu( CMenu* pMenu, vector<CString> vecMenuText );
@@ -49,6 +50,19 @@ public:
 	enum { IDD = IDD_TINYSMMS_DIALOG };
 	CListBox	m_listTables;
 	CCustomListCtrl	m_listResult;
+	CCustomListCtrl	m_listPatient;
+	CCustomListCtrl	m_listStudy;
+	CCustomListCtrl	m_listSeries;
+	CCustomListCtrl	m_listImage;
+	CCustomListCtrl	m_listSms;
+	CCustomListCtrl	m_listMwlOrder;
+	CCustomListCtrl	m_listMwlView;
+	CCustomListCtrl	m_listUserProfile;
+	CCustomListCtrl	m_listRoleProfile;
+	CCustomListCtrl	m_listSystemProfile;
+
+	CCustomListCtrl* m_pCurrentList;
+	map<CString, CCustomListCtrl*> m_mapTableResult;
 	CString	m_strSQL;
 	int		m_nClickedRow;
 	//}}AFX_DATA
@@ -80,7 +94,6 @@ protected:
 	afx_msg void OnButtonImage();
 	afx_msg void OnButtonSms();
 	afx_msg void OnButtonWebreport();
-	afx_msg void OnButtonClearall();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 public:
@@ -104,6 +117,8 @@ public:
 	afx_msg void OnBnClickedButtonWmlorder();
 	afx_msg void OnBnClickedButtonMwlview();
 	vector<CString> GetSMSDetail( const CString& strStudyInstnaceUID );
+	afx_msg void OnBnClickedButtonRoleProfile();
+	afx_msg void OnBnClickedButtonSystemProfile();
 };
 
 //{{AFX_INSERT_LOCATION}}
