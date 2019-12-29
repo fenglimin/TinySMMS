@@ -30,6 +30,9 @@ static char THIS_FILE[] = __FILE__;
 
 #define WM_MSG_VIEW_PSSI			(WM_USER +118)
 
+#define WM_MSG_OPEN_STUDY_DIR		(WM_USER +119)
+#define WM_MSG_OPEN_IMAGE			(WM_USER +120)
+
 class CAboutDlg : public CDialog
 {
 public:
@@ -623,6 +626,9 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_STUDY, "Delete Study ( AccessionNo = " + strMenuText + " )");
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, WM_MSG_OPEN_STUDY_DIR, "Open Study dir( StudyInstanceUID = " + strKeyValueDown + " )");
 	}
 	else if ( m_strCurrentTable.CompareNoCase("series") == 0 )
 	{
@@ -669,6 +675,9 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_IMAGE, "Delete Image ( SOPInstanceUID = " + strMenuText + " )");
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, WM_MSG_OPEN_IMAGE, "Open Image ( SOPInstanceUID = " + strMenuText + " )");
 	}
 	else if ( m_strCurrentTable.CompareNoCase("SMS") == 0 )
 	{
@@ -713,6 +722,12 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 	case WM_MSG_DELETE_PATIENT:
 		DeletePSSI(nResult, strKeyValueDown);
 		m_pCurrentList->DeleteItem(nRow);
+		break;
+	case WM_MSG_OPEN_STUDY_DIR:
+		OpenStudyDir(strKeyValueDown);
+		break;
+	case WM_MSG_OPEN_IMAGE:
+		OpenImage(strKeyValueDown);
 		break;
 	}
 	return TRUE;
@@ -1043,6 +1058,68 @@ vector<CString> CTinySMMSDlg::GetSMSDetail( const CString& strStudyInstnaceUID )
 
 
 	return vecSMS;
+}
+
+void CTinySMMSDlg::OpenStudyDir(const CString & strStudyUid)
+{
+	CString strSql;
+
+	strSql = "SELECT S.StudyDir, AE.root_dir FROM Study S, SMS, StorageAE AE WHERE S.StudyInstanceUID = '" + strStudyUid +
+		"' AND SMS.SUID = S.StudyInstanceUID AND SMS.sms_type = 1 AND SMS.sms_name = AE.StorageAEName";
+
+	CADORecordset dbrs(m_pDBConn);
+	if (!dbrs.Open((LPCTSTR)strSql))
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return;
+	}
+	
+	CString strStudyDir, strRootDir;
+	if (dbrs.IsEOF())
+	{
+		AfxMessageBox("Can not find study dir in the database");
+		dbrs.Close();
+		return;
+	}
+	else
+	{
+		dbrs.GetFieldValue("StudyDir", strStudyDir);
+		dbrs.GetFieldValue("root_dir", strRootDir);
+		dbrs.Close();
+	}
+	
+	WinExec("explorer.exe " + strRootDir + "\\" + strStudyDir, SW_SHOW);
+}
+
+void CTinySMMSDlg::OpenImage(const CString & strImageSopUid)
+{
+	CString strSql;
+
+	strSql = "SELECT I.ObjectFile, AE.root_dir FROM Study S, Series SS, Image I, SMS, StorageAE AE WHERE I.SOPInstanceUID = '" + strImageSopUid +
+		"' AND I.SeriesInstanceUID = SS.SeriesInstanceUID AND SS.StudyInstanceUID = SMS.SUID AND SMS.sms_type = 1 AND SMS.sms_name = AE.StorageAEName";
+
+	CADORecordset dbrs(m_pDBConn);
+	if (!dbrs.Open((LPCTSTR)strSql))
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return;
+	}
+
+	CString strObjectFile, strRootDir;
+	if (dbrs.IsEOF())
+	{
+		AfxMessageBox("Can not find image file in the database");
+		dbrs.Close();
+		return;
+	}
+	else
+	{
+		dbrs.GetFieldValue("ObjectFile", strObjectFile);
+		dbrs.GetFieldValue("root_dir", strRootDir);
+		dbrs.Close();
+	}
+
+	ShellExecute(NULL, _T("Open"), strRootDir + "\\" + strObjectFile, _T(""), strRootDir, SW_SHOW);
 }
 
 void CTinySMMSDlg::ChangeCurrentTable(const CString & strTableName)

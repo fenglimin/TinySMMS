@@ -26,6 +26,8 @@ class CTinySMMSDlg : public CDialog, public ICustomListUser
 {
 // Construction
 public:
+	void OpenStudyDir(const CString& strStudyUid);
+	void OpenImage(const CString& strImageSopUid);
 	void ChangeCurrentTable(const CString& strTableName);
 	vector<CString> GetSeriesDetail( const CString& strStudyInstnaceUID );
 	vector<CString> GetImageDetail( const CString& strSeriesInstanceUID );
