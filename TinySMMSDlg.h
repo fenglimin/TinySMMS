@@ -36,7 +36,7 @@ public:
 	CString GetPatientGUID(int nIDType, const CString& strUID);
 	CString	m_strCurrentTable;
 	BOOL RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToCommandList=TRUE );
-	CString GetWhereStatement(int nRow);
+	CString GetWhereStatement(int nRow, BOOL bOnlyFirstColumn = FALSE);
 	Columns* m_pAllColumns;
 	CADODatabase* m_pDBConn;
 	CString	m_strDbConnStr;

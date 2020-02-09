@@ -567,14 +567,10 @@ BOOL CTinySMMSDlg::OnFilterTextChanged(CListCtrl* pListCtrl, int nCol, const cha
 
 BOOL CTinySMMSDlg::OnCellTextChanged(CListCtrl* pListCtrl, int nRow, int nCol, CellFormat* pCellFormat, const CString& strOldValue, CString& strNewValue)
 {
-	CString strWhere = GetWhereStatement(nRow);
 	CString strUpdate = _T("UPDATE ") + m_strCurrentTable + _T(" SET ");
-
 	CustomColumn column = m_pCurrentList->m_ctrlHeader.m_gridColumnsList[nCol];
 	CString strTemp = strNewValue;
 	strTemp.Replace("'", "''");
-
-
 
 	if ( column.compareType != compareAsNumber )
 	{
@@ -585,7 +581,18 @@ BOOL CTinySMMSDlg::OnCellTextChanged(CListCtrl* pListCtrl, int nRow, int nCol, C
 		strUpdate += column.strHeaderCaption + " = " + strTemp + " ";
 	}
 
-	return RunSQL(strUpdate + strWhere,FALSE);
+	CString strWhere = GetWhereStatement(nRow);
+	if(!RunSQL(strUpdate + strWhere,FALSE))
+	{
+		CString strNewWhere = GetWhereStatement(nRow, TRUE);
+		if (AfxMessageBox("Cannot update table using condition " + strWhere + "\r\n\r\nDo you want to using condition " + strNewWhere + " to update table?", MB_YESNO) == IDNO)
+		{
+			return FALSE;
+		}
+		return RunSQL(strUpdate + strNewWhere,FALSE);
+	}
+
+	return TRUE;
 }
 
 BOOL CTinySMMSDlg::OnCellCtrlClicked(CListCtrl* pListCtrl, int nRow, int nCol, CellFormat* pCellFormat)
@@ -789,9 +796,7 @@ void CTinySMMSDlg::OnPopupDeleteallselectedrow()
 		
 		m_pCurrentList->DeleteItem(nRow);
 		pos = m_pCurrentList->GetFirstSelectedItemPosition();
-
-	}
-	
+	}	
 }
 
 void CTinySMMSDlg::OnPopupInsertcopy32775()
@@ -817,7 +822,7 @@ void CTinySMMSDlg::OnPopupInsertcopy32775()
 	
 }
 
-CString CTinySMMSDlg::GetWhereStatement(int nRow)
+CString CTinySMMSDlg::GetWhereStatement(int nRow, BOOL bOnlyFirstColumn)
 {
 	
 	int nColCount = m_pCurrentList->m_ctrlHeader.GetItemCount();
@@ -825,6 +830,10 @@ CString CTinySMMSDlg::GetWhereStatement(int nRow)
 		return _T("");
 	
 	CString strWhere;
+	if (bOnlyFirstColumn)
+	{
+		nColCount = 1;
+	}
 
 	for ( int i = 0; i < nColCount; i++)
 	{
