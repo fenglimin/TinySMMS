@@ -7,6 +7,7 @@
 #include "LoginDialog.h"
 #include "resource.h"
 #include "InsertRowDialog.h"
+#include <algorithm>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -311,18 +312,49 @@ void CTinySMMSDlg::LoadAllTables()
 		return;
 	}
 
+	vector<CString> vecCommonTables;
+	vecCommonTables.push_back("Patient");
+	vecCommonTables.push_back("Study");
+	vecCommonTables.push_back("Series");
+	vecCommonTables.push_back("Image");
+	vecCommonTables.push_back("SMS");
+	vecCommonTables.push_back("MWLOrder");
+	vecCommonTables.push_back("MWLView");
+	vecCommonTables.push_back("SystemProfile");
+	vecCommonTables.push_back("RoleProfile");
+	vecCommonTables.push_back("UserProfile");
+	vecCommonTables.push_back("RoleProfile");
+	vecCommonTables.push_back("NetAE");
+	vecCommonTables.push_back("StorageAE");
+	vecCommonTables.push_back("PrintJob");
+	vecCommonTables.push_back("RuleJob");
+	vecCommonTables.push_back("RuleJobItem");
+	vecCommonTables.push_back("TagMapping");
+	vecCommonTables.push_back("UserDefinedField");
+	vecCommonTables.push_back("------------------------------");
+
 	m_listTables.ResetContent();
 	while (!dbrs.IsEof())
 	{
 		CString strTable;
 		dbrs.GetFieldValue(_T("Table Name"), strTable);
 		if ( strTable != "" )
-			m_listTables.AddString(strTable);
+		{
+			if (std::find(vecCommonTables.begin(), vecCommonTables.end(), strTable) == vecCommonTables.end())
+			{
+				vecCommonTables.push_back(strTable);
+			}
+		}
 
 		dbrs.MoveNext();
 	}
 
 	dbrs.Close();
+
+	for(int i = 0; i < vecCommonTables.size(); i++)
+	{
+		m_listTables.AddString(vecCommonTables[i]);
+	}
 }
 
 
@@ -331,6 +363,11 @@ void CTinySMMSDlg::OnDblclkListTabs()
 {
 	CString strTable;
 	m_listTables.GetText(m_listTables.GetCurSel(), strTable);
+	if (strTable == "------------------------------")
+	{
+		return;
+	}
+
 	ChangeCurrentTable(strTable);
 	RunSQL("SELECT * FROM " + m_strCurrentTable,TRUE);
 }
@@ -628,7 +665,7 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_STUDY, "Delete Study ( AccessionNo = " + strMenuText + " )");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, WM_MSG_OPEN_STUDY_DIR, "Open Study dir( StudyInstanceUID = " + strKeyValueDown + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, WM_MSG_OPEN_STUDY_DIR, "Open Study Dir( StudyInstanceUID = " + strKeyValueDown + " )");
 	}
 	else if ( m_strCurrentTable.CompareNoCase("series") == 0 )
 	{
