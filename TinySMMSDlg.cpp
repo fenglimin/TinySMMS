@@ -761,7 +761,7 @@ void CTinySMMSDlg::OnPopupInsertcopy32775()
 {
 	CInsertRowDialog dlg;
 
-	dlg.m_pDataList = &m_listResult;
+	dlg.m_pDataList = m_pCurrentList;
 	dlg.m_nRow = m_nClickedRow;
 	dlg.m_strTableName = m_strCurrentTable;
 	
