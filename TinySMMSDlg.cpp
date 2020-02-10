@@ -182,6 +182,26 @@ BOOL CTinySMMSDlg::OnInitDialog()
 
 	m_pDBConn = loginDlg.m_pDBConn;
 
+	m_vecCommonTables.push_back("Patient");
+	m_vecCommonTables.push_back("Study");
+	m_vecCommonTables.push_back("Series");
+	m_vecCommonTables.push_back("Image");
+	m_vecCommonTables.push_back("SMS");
+	m_vecCommonTables.push_back("MWLOrder");
+	m_vecCommonTables.push_back("MWLView");
+	m_vecCommonTables.push_back("SystemProfile");
+	m_vecCommonTables.push_back("RoleProfile");
+	m_vecCommonTables.push_back("UserProfile");
+	m_vecCommonTables.push_back("RoleProfile");
+	m_vecCommonTables.push_back("NetAE");
+	m_vecCommonTables.push_back("StorageAE");
+	m_vecCommonTables.push_back("PrintJob");
+	m_vecCommonTables.push_back("RuleJob");
+	m_vecCommonTables.push_back("RuleJobItem");
+	m_vecCommonTables.push_back("TagMapping");
+	m_vecCommonTables.push_back("UserDefinedField");
+	m_vecCommonTables.push_back("------------------------------");
+
 	m_mapTableResult["Patient"] = &m_listPatient;
 	m_mapTableResult["Study"] = &m_listStudy; 
 	m_mapTableResult["Series"] = &m_listSeries; 
@@ -312,26 +332,8 @@ void CTinySMMSDlg::LoadAllTables()
 		return;
 	}
 
-	vector<CString> vecCommonTables;
-	vecCommonTables.push_back("Patient");
-	vecCommonTables.push_back("Study");
-	vecCommonTables.push_back("Series");
-	vecCommonTables.push_back("Image");
-	vecCommonTables.push_back("SMS");
-	vecCommonTables.push_back("MWLOrder");
-	vecCommonTables.push_back("MWLView");
-	vecCommonTables.push_back("SystemProfile");
-	vecCommonTables.push_back("RoleProfile");
-	vecCommonTables.push_back("UserProfile");
-	vecCommonTables.push_back("RoleProfile");
-	vecCommonTables.push_back("NetAE");
-	vecCommonTables.push_back("StorageAE");
-	vecCommonTables.push_back("PrintJob");
-	vecCommonTables.push_back("RuleJob");
-	vecCommonTables.push_back("RuleJobItem");
-	vecCommonTables.push_back("TagMapping");
-	vecCommonTables.push_back("UserDefinedField");
-	vecCommonTables.push_back("------------------------------");
+	
+	vector<CString> vecOtherTables;
 
 	m_listTables.ResetContent();
 	while (!dbrs.IsEof())
@@ -340,9 +342,9 @@ void CTinySMMSDlg::LoadAllTables()
 		dbrs.GetFieldValue(_T("Table Name"), strTable);
 		if ( strTable != "" )
 		{
-			if (std::find(vecCommonTables.begin(), vecCommonTables.end(), strTable) == vecCommonTables.end())
+			if (std::find(m_vecCommonTables.begin(), m_vecCommonTables.end(), strTable) == m_vecCommonTables.end())
 			{
-				vecCommonTables.push_back(strTable);
+				vecOtherTables.push_back(strTable);
 			}
 		}
 
@@ -351,9 +353,14 @@ void CTinySMMSDlg::LoadAllTables()
 
 	dbrs.Close();
 
-	for(int i = 0; i < vecCommonTables.size(); i++)
+	for(int i = 0; i < m_vecCommonTables.size(); i++)
 	{
-		m_listTables.AddString(vecCommonTables[i]);
+		m_listTables.AddString(m_vecCommonTables[i]);
+	}
+
+	for(int i = 0; i < vecOtherTables.size(); i++)
+	{
+		m_listTables.AddString(vecOtherTables[i]);
 	}
 }
 
@@ -451,7 +458,7 @@ BOOL CTinySMMSDlg::RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToComman
 			}
 
 			m_pCurrentList->SetColumnInfo(gridColumnsList, strColumnOrder);
-			m_pCurrentList->m_ctrlHeader.SetSortArrow(0, TRUE);
+			m_pCurrentList->m_ctrlHeader.SetSortArrow(0, FALSE);
 		}
 
 		int nRow = 0;
@@ -1295,7 +1302,7 @@ void CTinySMMSDlg::OnButtonPatient()
 	ChangeCurrentTable("Patient");
 	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 	{
-		RunSQL("SELECT TOP 100 * FROM Patient ORDER BY SerialNo", TRUE);
+		RunSQL("SELECT TOP 100 * FROM Patient ORDER BY SerialNo DESC", TRUE);
 	}
 }
 
@@ -1304,7 +1311,7 @@ void CTinySMMSDlg::OnButtonStudy()
 	ChangeCurrentTable("Study");
 	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 	{
-		RunSQL("SELECT TOP 100 * FROM Study ORDER BY SerialNo", TRUE);
+		RunSQL("SELECT TOP 100 * FROM Study ORDER BY SerialNo DESC", TRUE);
 	}
 }
 
@@ -1313,7 +1320,7 @@ void CTinySMMSDlg::OnButtonSeries()
 	ChangeCurrentTable("Series");
 	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 	{
-		RunSQL("SELECT TOP 100 * FROM Series ORDER BY SerialNo", TRUE);
+		RunSQL("SELECT TOP 100 * FROM Series ORDER BY SerialNo DESC", TRUE);
 	}
 }
 
@@ -1322,7 +1329,7 @@ void CTinySMMSDlg::OnButtonImage()
 	ChangeCurrentTable("Image");
 	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 	{
-		RunSQL("SELECT TOP 100 * FROM Image ORDER BY SerialNo", TRUE);
+		RunSQL("SELECT TOP 100 * FROM Image ORDER BY SerialNo DESC", TRUE);
 	}
 }
 
@@ -1332,7 +1339,7 @@ void CTinySMMSDlg::OnBnClickedButtonSms1()
 	ChangeCurrentTable("SMS");
 	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 	{
-		RunSQL("SELECT TOP 100 * FROM SMS ORDER BY SUID", TRUE);
+		RunSQL("SELECT TOP 100 * FROM SMS ORDER BY SUID DESC", TRUE);
 	}
 }
 
@@ -1342,7 +1349,7 @@ void CTinySMMSDlg::OnBnClickedButtonWmlorder()
 	ChangeCurrentTable("MWLOrder");
 	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 	{
-		RunSQL("SELECT TOP 100 * FROM MWLOrder ORDER BY MWLOrderKey", TRUE);
+		RunSQL("SELECT TOP 100 * FROM MWLOrder ORDER BY MWLOrderKey DESC", TRUE);
 	}
 }
 
@@ -1352,7 +1359,7 @@ void CTinySMMSDlg::OnBnClickedButtonMwlview()
 	ChangeCurrentTable("MWLView");
 	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 	{
-		RunSQL("SELECT TOP 100 * FROM MWLView ORDER BY MWLViewKey", TRUE);
+		RunSQL("SELECT TOP 100 * FROM MWLView ORDER BY MWLViewKey DESC", TRUE);
 	}
 }
 

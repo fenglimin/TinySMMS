@@ -67,6 +67,7 @@ public:
 	map<CString, CCustomListCtrl*> m_mapTableResult;
 	CString	m_strSQL;
 	int		m_nClickedRow;
+	vector<CString> m_vecCommonTables;
 	//}}AFX_DATA
 
 	// ClassWizard generated virtual function overrides
