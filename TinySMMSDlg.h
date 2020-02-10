@@ -62,6 +62,7 @@ public:
 	CCustomListCtrl	m_listUserProfile;
 	CCustomListCtrl	m_listRoleProfile;
 	CCustomListCtrl	m_listSystemProfile;
+	CCustomListCtrl	m_listSystemInfo;
 
 	CCustomListCtrl* m_pCurrentList;
 	map<CString, CCustomListCtrl*> m_mapTableResult;
@@ -122,6 +123,11 @@ public:
 	vector<CString> GetSMSDetail( const CString& strStudyInstnaceUID );
 	afx_msg void OnBnClickedButtonRoleProfile();
 	afx_msg void OnBnClickedButtonSystemProfile();
+	afx_msg void OnBnClickedButtonSystemInfo();
+	void InitSystemInfoTable();
+	void LoadSystemInfo();
+	CString GetTableRowCount( const CString& strTableName );
+	CString GetProfileValue( const CString& strPropertyName );
 };
 
 //{{AFX_INSERT_LOCATION}}

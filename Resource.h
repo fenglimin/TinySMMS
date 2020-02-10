@@ -17,6 +17,8 @@
 #define IDC_BUTTON_RUN                  1003
 #define IDC_LIST_RESULT                 1004
 #define IDC_EDIT_SERVERNAME             1005
+#define IDC_LIST_RESULT2                1005
+#define IDC_LIST_SYSTEM_INFO            1005
 #define IDC_EDIT_DATABASE               1006
 #define IDC_EDIT_USERNAME               1007
 #define IDC_COMBO_PASSWORD              1008
@@ -29,6 +31,7 @@
 #define IDC_BUTTON_SYSTEM_PROFILE       1013
 #define IDC_BUTTON_ROLE_PROFILE         1014
 #define IDC_BUTTON_CLEARALL             1015
+#define IDC_BUTTON_SYSTEM_INFO          1015
 #define IDC_BUTTON_WEBREPORT2           1016
 #define IDC_BUTTON_USER_PROFILE         1016
 #define IDC_LIST1                       1017

@@ -113,6 +113,7 @@ void CTinySMMSDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LIST_USER_PROFILE, m_listUserProfile);
 	DDX_Control(pDX, IDC_LIST_ROLE_PROFILE, m_listRoleProfile);
 	DDX_Control(pDX, IDC_LIST_SYSTEM_PROFILE, m_listSystemProfile);
+	DDX_Control(pDX, IDC_LIST_SYSTEM_INFO, m_listSystemInfo);
 	DDX_Text(pDX, IDC_EDIT_SQL, m_strSQL);
 	//}}AFX_DATA_MAP
 	DDX_Control(pDX, IDC_EDIT_SQL, m_editSQL);
@@ -140,6 +141,7 @@ BEGIN_MESSAGE_MAP(CTinySMMSDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_MWLVIEW, &CTinySMMSDlg::OnBnClickedButtonMwlview)
 	ON_BN_CLICKED(IDC_BUTTON_ROLE_PROFILE, &CTinySMMSDlg::OnBnClickedButtonRoleProfile)
 	ON_BN_CLICKED(IDC_BUTTON_SYSTEM_PROFILE, &CTinySMMSDlg::OnBnClickedButtonSystemProfile)
+	ON_BN_CLICKED(IDC_BUTTON_SYSTEM_INFO, &CTinySMMSDlg::OnBnClickedButtonSystemInfo)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -192,7 +194,6 @@ BOOL CTinySMMSDlg::OnInitDialog()
 	m_vecCommonTables.push_back("SystemProfile");
 	m_vecCommonTables.push_back("RoleProfile");
 	m_vecCommonTables.push_back("UserProfile");
-	m_vecCommonTables.push_back("RoleProfile");
 	m_vecCommonTables.push_back("NetAE");
 	m_vecCommonTables.push_back("StorageAE");
 	m_vecCommonTables.push_back("PrintJob");
@@ -230,6 +231,8 @@ BOOL CTinySMMSDlg::OnInitDialog()
 
 	LoadAllTables();
 	
+	InitSystemInfoTable();
+	LoadSystemInfo();
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -1177,6 +1180,8 @@ void CTinySMMSDlg::OpenImage(const CString & strImageSopUid)
 
 void CTinySMMSDlg::ChangeCurrentTable(const CString & strTableName)
 {
+	m_listSystemInfo.ShowWindow(SW_HIDE);
+
 	BOOL bFind = FALSE;
 	for (map<CString, CCustomListCtrl*>::iterator it = m_mapTableResult.begin(); it != m_mapTableResult.end(); it++)
 	{
@@ -1388,4 +1393,152 @@ void CTinySMMSDlg::OnBnClickedButtonSystemProfile()
 	{
 		RunSQL("SELECT TOP 100 * FROM SystemProfile", TRUE);
 	}
+}
+
+
+void CTinySMMSDlg::OnBnClickedButtonSystemInfo()
+{
+	m_listSystemInfo.ShowWindow(SW_SHOW);
+}
+
+void CTinySMMSDlg::InitSystemInfoTable()
+{
+	CustomColumn		gridColumn;
+	CustomColumnList	gridColumnsList;
+
+	gridColumn.Reset();
+	gridColumn.strHeaderCaption = _T("Name");
+	gridColumn.nWidth = 300;
+	gridColumn.nFormat = LVCFMT_LEFT;
+	gridColumnsList.push_back(gridColumn);
+
+	gridColumn.Reset();
+	gridColumn.strHeaderCaption = _T("Value");
+	gridColumn.nWidth = 700;
+	gridColumn.nFormat = LVCFMT_LEFT;
+	gridColumnsList.push_back(gridColumn);
+
+
+	CString strColumnOrder = "0;1";
+	m_listSystemInfo.SetColumnInfo(gridColumnsList, strColumnOrder);
+
+	// Set Row Bk Color
+	m_listSystemInfo.AddDefaultRowColor(RGB(239,239,239));
+	m_listSystemInfo.AddDefaultRowColor(RGB(207,207,207));
+
+	// Height
+	m_listSystemInfo.SetRowHeigt(24);
+	m_listSystemInfo.SetHeaderHeight(24);
+
+	m_listSystemInfo.EnableFilter(FALSE);
+	m_listSystemInfo.SetMultipleSelection(FALSE);
+
+	int nRow;
+	nRow = m_listSystemInfo.AppendRow();
+	m_listSystemInfo.SetCell(nRow, 0, "Version");
+
+	nRow = m_listSystemInfo.AppendRow();
+	m_listSystemInfo.SetCell(nRow, 0, "Install Time");
+
+	nRow = m_listSystemInfo.AppendRow();
+	m_listSystemInfo.SetCell(nRow, 0, "Language");
+
+	nRow = m_listSystemInfo.AppendRow();
+	m_listSystemInfo.SetCell(nRow, 0, "Product Name");
+
+	nRow = m_listSystemInfo.AppendRow();
+	m_listSystemInfo.SetCell(nRow, 0, "System Name");
+
+	nRow = m_listSystemInfo.AppendRow();
+	m_listSystemInfo.SetCell(nRow, 0, "Patient Count");
+
+	nRow = m_listSystemInfo.AppendRow();
+	m_listSystemInfo.SetCell(nRow, 0, "Study Count");
+
+	nRow = m_listSystemInfo.AppendRow();
+	m_listSystemInfo.SetCell(nRow, 0, "Series Count");
+
+	nRow = m_listSystemInfo.AppendRow();
+	m_listSystemInfo.SetCell(nRow, 0, "Image Count");
+
+	nRow = m_listSystemInfo.AppendRow();
+	m_listSystemInfo.SetCell(nRow, 0, "SMS Count");
+
+	nRow = m_listSystemInfo.AppendRow();
+	m_listSystemInfo.SetCell(nRow, 0, "MWLOrder Count");
+
+	nRow = m_listSystemInfo.AppendRow();
+	m_listSystemInfo.SetCell(nRow, 0, "MWLView Count");
+}
+
+void CTinySMMSDlg::LoadSystemInfo()
+{
+	int nRow = 0;
+	m_listSystemInfo.SetCell(nRow++, 1, GetProfileValue("GI_Version"));
+	m_listSystemInfo.SetCell(nRow++, 1, GetProfileValue("GI_InstallTime"));
+	m_listSystemInfo.SetCell(nRow++, 1, GetProfileValue("GI_Language"));
+	m_listSystemInfo.SetCell(nRow++, 1, GetProfileValue("GI_ProductName"));
+	m_listSystemInfo.SetCell(nRow++, 1, GetProfileValue("GI_SystemName"));
+	m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("Patient"));
+	m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("Study"));
+	m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("Series"));
+	m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("Image"));
+	m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("SMS"));
+	m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("MWLOrder"));
+	m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("MWLView"));
+
+}
+
+CString CTinySMMSDlg::GetTableRowCount( const CString& strTableName )
+{
+	CString strSql = "SELECT count(*) Count FROM " + strTableName;
+	CADORecordset dbrs(m_pDBConn);
+	if (!dbrs.Open((LPCTSTR)strSql))
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return "Error";
+	}
+
+	int nCount = 0;
+	if (dbrs.IsEOF())
+	{
+		AfxMessageBox("Cannot get count for table" + strTableName);
+		dbrs.Close();
+		return "Error";
+	}
+	else
+	{
+		dbrs.GetFieldValue("Count", nCount);
+		dbrs.Close();
+	}
+
+	CString strRet;
+	strRet.Format("%d", nCount);
+	return strRet;
+}
+
+CString CTinySMMSDlg::GetProfileValue( const CString& strPropertyName )
+{
+	CString strSql = "SELECT PropertyValue FROM SystemProfile WHERE PropertyName = '" + strPropertyName + "'";
+	CADORecordset dbrs(m_pDBConn);
+	if (!dbrs.Open((LPCTSTR)strSql))
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return "Error";
+	}
+
+	CString strRet;
+	if (dbrs.IsEOF())
+	{
+		AfxMessageBox("Cannot get value for " + strPropertyName);
+		dbrs.Close();
+		return "Error";
+	}
+	else
+	{
+		dbrs.GetFieldValue("PropertyValue", strRet);
+		dbrs.Close();
+	}
+
+	return strRet;
 }
