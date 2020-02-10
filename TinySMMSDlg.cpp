@@ -1451,6 +1451,10 @@ void CTinySMMSDlg::OnBnClickedButtonSystemProfile()
 
 void CTinySMMSDlg::OnBnClickedButtonSystemInfo()
 {
+	for (map<CString, CCustomListCtrl*>::iterator it = m_mapTableResult.begin(); it != m_mapTableResult.end(); it++)
+	{
+		it->second->ShowWindow(SW_HIDE);
+	}
 	m_listSystemInfo.ShowWindow(SW_SHOW);
 }
 
