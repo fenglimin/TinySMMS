@@ -147,6 +147,21 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // CTinySMMSDlg message handlers
 
+BOOL CTinySMMSDlg::PreTranslateMessage(MSG* pMsg)
+{
+	if(pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_F5)
+	{
+		//CWnd* pWnd = dynamic_cast<CEdit*>(GetFocus());
+		if (GetFocus()->m_hWnd == m_editSQL.m_hWnd)
+		{
+			OnButtonRun();
+		}
+		return TRUE;
+	}
+
+	return __super::PreTranslateMessage(pMsg);
+}
+
 BOOL CTinySMMSDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
@@ -290,18 +305,41 @@ void CTinySMMSDlg::OnButtonRun()
 	int nStartChar, nEndChar;
 	m_editSQL.GetSel(nStartChar, nEndChar);
 	
+	CString strSqlToRun;
 	if ( nStartChar == nEndChar )
 	{
-		AfxMessageBox(_T("Please select a SQL statement!"));
-		return;
+		CString strSql = m_strSQL;
+		vector<CString> vecSqlList;
+		while(TRUE)
+		{
+			int nIndex = strSql.Find("\r\n");
+			if (nIndex == -1)
+			{
+				break;
+			}
+			vecSqlList.push_back(strSql.Left(nIndex));
+			strSql = strSql.Right(strSql.GetLength() - nIndex - 2);
+		}
+		
+		int nRealStart = 0;
+		for(int i = 0; i < vecSqlList.size(); i++)
+		{
+			nRealStart += vecSqlList[i].GetLength() + 2;
+			if (nRealStart >= nStartChar )
+			{
+				strSqlToRun = vecSqlList[i];
+				 break;
+			}
+		}		
+	}
+	else
+	{
+		strSqlToRun = m_strSQL.Mid(nStartChar, nEndChar-nStartChar);
 	}
 
 	UpdateData();
-	CString strSQL = m_strSQL.Mid(nStartChar, nEndChar-nStartChar);
-
-
 	ChangeCurrentTable("Unknown");
-	RunSQL(strSQL,TRUE, FALSE);
+	RunSQL(strSqlToRun,TRUE, FALSE);
 
 }
 
