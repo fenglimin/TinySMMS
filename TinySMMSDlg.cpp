@@ -441,7 +441,6 @@ BOOL CTinySMMSDlg::RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToComman
 		}
 		
 		m_pCurrentList->DeleteAllItems();
-
 		
 		int nFieldCount = m_pCurrentList->m_ctrlHeader.GetItemCount();
 		if ( bColumnsChange )
@@ -522,9 +521,25 @@ BOOL CTinySMMSDlg::RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToComman
 		CString strTitle;
 		strTitle.Format("TinySMMS - Total %d rows selected!", nRow);
 		SetWindowText(strTitle);
-
 		
-
+		int nIndex = strSQL.MakeUpper().Find("FROM");
+		if (nIndex != -1)
+		{
+			CString strTableName = strSQL.Right(strSQL.GetLength() - nIndex - 4);
+			strTableName.TrimLeft();
+			strTableName.Replace("\t", " ");
+			nIndex = strTableName.Find(" ");
+			if (nIndex != -1)
+			{
+				strTableName = strTableName.Left(nIndex);
+			}
+			ChangeCurrentTable(strTableName);
+		}
+		else
+		{
+			AfxMessageBox("Cannot get table name from sql string");
+		}
+		
 		return TRUE;
 	}
 	else
