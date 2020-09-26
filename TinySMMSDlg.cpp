@@ -1007,12 +1007,16 @@ void CTinySMMSDlg::OnBnClickedButtonClearPssi()
 	vecSqlList.push_back("Delete from Image");
 	vecSqlList.push_back("Delete from Series");
 	vecSqlList.push_back("Delete from SMS");
+	vecSqlList.push_back("Delete from MWLOrderExtendField");
 	vecSqlList.push_back("Delete from MWLView");
 	vecSqlList.push_back("Delete from MWLOrder");
 	vecSqlList.push_back("Delete from Study");
 	vecSqlList.push_back("Delete from Patient");
 
-	m_pDBConn->RunTransaction(vecSqlList);
+	if (m_pDBConn->RunTransaction(vecSqlList))
+	{
+		AfxMessageBox("Pssi data cleared!");
+	}
 }
 
 CString CTinySMMSDlg::GetPatientGUID( int nIDType, const CString& strUID )
