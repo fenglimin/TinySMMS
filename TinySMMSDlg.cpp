@@ -533,6 +533,11 @@ BOOL CTinySMMSDlg::RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToComman
 			{
 				strTableName = strTableName.Left(nIndex);
 			}
+
+			if (strTableName.GetAt(0) == '[' && strTableName.GetAt(strTableName.GetLength()-1) == ']')
+			{
+				strTableName = strTableName.Mid(1, strTableName.GetLength()-2);
+			}
 			ChangeCurrentTable(strTableName);
 		}
 		else
