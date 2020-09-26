@@ -417,7 +417,7 @@ void CTinySMMSDlg::OnDblclkListTabs()
 	}
 
 	ChangeCurrentTable(strTable);
-	RunSQL("SELECT * FROM " + m_strCurrentTable,TRUE);
+	RunSQL("SELECT * FROM [" + m_strCurrentTable + "]",TRUE);
 }
 
 BOOL CTinySMMSDlg::RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToCommandList)
