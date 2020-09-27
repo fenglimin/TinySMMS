@@ -190,11 +190,13 @@ BOOL CTinySMMSDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);
 	
 	// Set small icon
-
+	m_pDBConn = NULL;
+	
 	CLoginDialog loginDlg;
 	if ( loginDlg.DoModal() != IDOK )
 	{
 		OnCancel();
+		return FALSE;
 	}
 
 	m_pDBConn = loginDlg.m_pDBConn;
