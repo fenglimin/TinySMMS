@@ -974,6 +974,7 @@ void CTinySMMSDlg::DeletePSSI( int nType, CString strUID )
 		vecSqlList.push_back("Delete Series from Series, Study where Series.StudyInstanceUID = Study.StudyInstanceUID and Study.PatientGUID = '" + strUID + "'");
 		vecSqlList.push_back("Delete SMS from SMS, Study where SMS.SUID = Study.StudyInstanceUID and Study.PatientGUID = '" + strUID + "'");
 		vecSqlList.push_back("Delete MWLView from MWLView, MWLOrder, Study where MWLView.MWLOrderKey = MWLOrder.MWLOrderKey and MWLOrder.StudyInstanceUID = Study.StudyInstanceUID and Study.PatientGUID = '" + strUID + "'");
+		vecSqlList.push_back("Delete MWLOrderExtendField from MWLOrderExtendField, MWLOrder, Study where MWLOrderExtendField.MWLOrderKey = MWLOrder.MWLOrderKey and MWLOrder.StudyInstanceUID = Study.StudyInstanceUID and Study.PatientGUID = '" + strUID + "'");
 		vecSqlList.push_back("Delete MWLOrder from MWLOrder, Study where MWLOrder.StudyInstanceUID = Study.StudyInstanceUID and Study.PatientGUID = '" + strUID + "'");
 		vecSqlList.push_back("Delete from Study where PatientGUID = '" + strUID + "'");
 		vecSqlList.push_back("Delete from Patient where PatientGUID = '" + strUID + "'");
@@ -984,6 +985,7 @@ void CTinySMMSDlg::DeletePSSI( int nType, CString strUID )
 		vecSqlList.push_back("Delete Series from Series, Study where Series.StudyInstanceUID = '" + strUID + "'");
 		vecSqlList.push_back("Delete SMS from SMS, Study where SMS.SUID = '" + strUID + "'");
 		vecSqlList.push_back("Delete MWLView from MWLView, MWLOrder, Study where MWLView.MWLOrderKey = MWLOrder.MWLOrderKey and MWLOrder.StudyInstanceUID = '" + strUID + "'");
+		vecSqlList.push_back("Delete MWLOrderExtendField from MWLOrderExtendField, MWLOrder where MWLOrderExtendField.MWLOrderKey = MWLOrder.MWLOrderKey and MWLOrder.StudyInstanceUID = '" + strUID + "'");
 		vecSqlList.push_back("Delete from MWLOrder where StudyInstanceUID = '" + strUID + "'");
 		vecSqlList.push_back("Delete from Study where StudyInstanceUID = '" + strUID + "'");
 	}
