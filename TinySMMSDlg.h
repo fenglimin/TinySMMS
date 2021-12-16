@@ -116,7 +116,7 @@ public:
 	CEdit m_editSQL;
 	afx_msg void OnBnClickedButtonReload();
 	afx_msg void OnBnClickedButtonUserProfile();
-	void DeletePSSI( int nType, CString strUID );
+	BOOL DeletePSSI( int nType, CString strUID );
 	afx_msg void OnBnClickedButtonClearPssi();
 	afx_msg void OnBnClickedButtonSms1();
 	afx_msg void OnBnClickedButtonWmlorder();
@@ -129,6 +129,7 @@ public:
 	void LoadSystemInfo();
 	CString GetTableRowCount( const CString& strTableName );
 	CString GetProfileValue( const CString& strPropertyName );
+	void DeleteAllSelectedPssi(int nType);
 };
 
 //{{AFX_INSERT_LOCATION}}
