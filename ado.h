@@ -92,7 +92,7 @@ public:
 		}
 	}
 	
-	BOOL Open(LPCTSTR lpstrConnection = _T(""), LPCTSTR lpstrUserID = _T(""), LPCTSTR lpstrPassword = _T(""));
+	BOOL Open(LPCTSTR lpstrConnection = _T(""), LPCTSTR lpstrUserID = _T(""), LPCTSTR lpstrPassword = _T(""), BOOL bSilent = FALSE);
 	_ConnectionPtr GetActiveConnection() 
 		{return m_pConnection;};
 	BOOL Execute(LPCTSTR lpstrExec);

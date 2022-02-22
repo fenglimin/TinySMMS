@@ -60,15 +60,24 @@ void CLoginDialog::OnOK()
 					 ";Initial Catalog=" + m_strDatabase +
 					 ";User ID=" + m_strUserName + ";ole db services = -2;";
 	
-//	m_strDbConnStr = "Password=pdchi20021224$;Provider=SQLNCLI10;Data Source=localhost\\GCPACSWS;Initial Catalog=WGGC;User ID=pdchi;ole db services = -2;";
-//	m_strDbConnStr = "Password=cshgx20021224$;Provider=SQLNCLI10;Data Source=localhost\\GCPACSWS;Initial Catalog=WGGC;User ID=pdchi;ole db services = -2;";
 	
-	if(!m_pDBConn->Open(strDbConnStr))
+	if(!DoLogin(FALSE))
 	{
-		AfxMessageBox("Can't open Database!(" + strDbConnStr + ")");
-		return;
+		if (m_strProvider == "SQLNCLI10")
+		{
+			m_strProvider = "SQLNCLI11";
+			DoLogin(TRUE);	
+		}
+		else if (m_strProvider == "SQLNCLI11")
+		{
+			m_strProvider = "SQLNCLI10";
+			DoLogin(TRUE);
+		}
+		else
+		{
+			return;	
+		}		
 	}
-
 	
 	CDialog::OnOK();
 }
@@ -88,4 +97,25 @@ BOOL CLoginDialog::OnInitDialog()
 	
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
+}
+
+BOOL CLoginDialog::DoLogin(BOOL bStopIfFailed)
+{
+	CString strDbConnStr = "Password=" + m_strPassword +
+		";Provider=" + m_strProvider + 
+		";Data Source=" + m_strServerName +
+		";Initial Catalog=" + m_strDatabase +
+		";User ID=" + m_strUserName + ";ole db services = -2;";
+
+	if (m_pDBConn->Open(strDbConnStr, "", "", !bStopIfFailed))
+	{
+		return TRUE;
+	}
+
+	if (bStopIfFailed)
+	{
+		AfxMessageBox("Can't open Database!(" + strDbConnStr + ")");
+	}
+
+	return FALSE;
 }

@@ -43,7 +43,8 @@ protected:
 	//{{AFX_MSG(CLoginDialog)
 	virtual void OnOK();
 	virtual BOOL OnInitDialog();
-	//}}AFX_MSG
+	BOOL DoLogin(BOOL bStopIfFailed);
+//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 public:
 	CString m_strProvider;

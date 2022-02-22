@@ -36,7 +36,7 @@ DWORD CADODatabase::GetRecordCount(_RecordsetPtr m_pRs)
 	return numRows;
 }
 
-BOOL CADODatabase::Open(LPCTSTR lpstrConnection, LPCTSTR lpstrUserID, LPCTSTR lpstrPassword)
+BOOL CADODatabase::Open(LPCTSTR lpstrConnection, LPCTSTR lpstrUserID, LPCTSTR lpstrPassword, BOOL bSilent)
 {
 	HRESULT hr = S_OK;
 
@@ -59,7 +59,10 @@ BOOL CADODatabase::Open(LPCTSTR lpstrConnection, LPCTSTR lpstrUserID, LPCTSTR lp
 	}
 	catch(_com_error &e)
 	{
-		dump_com_error(e);
+		if (!bSilent)
+		{
+			dump_com_error(e);	
+		}		
 		return FALSE;
 	}
 	
