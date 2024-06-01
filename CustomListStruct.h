@@ -289,4 +289,5 @@ public:
 	virtual BOOL OnRowLClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT nFlags, CPoint point){ return TRUE; };
 	virtual BOOL OnRowLDblClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT nFlags, CPoint point){ return TRUE; };
 	virtual BOOL OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT nFlags, CPoint point){ return TRUE; };
+	virtual BOOL OnKeyPressed(CListCtrl* pListCtrl, WPARAM nKeyCode){ return TRUE;};
 };

@@ -155,6 +155,11 @@ BOOL CCustomListCtrl::PreTranslateMessage(MSG* pMsg)
 
 	if (pMsg->message==WM_KEYDOWN)
 	{
+		if (m_pUser != NULL)
+		{
+			m_pUser->OnKeyPressed(this, pMsg->wParam);
+		}
+		
 		if (pMsg->wParam== VK_UP || pMsg->wParam == VK_DOWN || pMsg->wParam == VK_PRIOR ||
 			pMsg->wParam== VK_NEXT || pMsg->wParam == VK_HOME || pMsg->wParam == VK_END)
 		{

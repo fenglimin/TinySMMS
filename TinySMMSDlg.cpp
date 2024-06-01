@@ -1669,3 +1669,13 @@ CString CTinySMMSDlg::GetProfileValue( const CString& strPropertyName )
 
 	return strRet;
 }
+
+BOOL CTinySMMSDlg::OnKeyPressed( CListCtrl* pListCtrl, WPARAM nKeyCode )
+{
+	if (nKeyCode == VK_F5)
+	{
+		OnFilterTextChanged(pListCtrl, -1, "");
+	}
+
+	return TRUE;
+}
