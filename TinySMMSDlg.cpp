@@ -1596,6 +1596,8 @@ void CTinySMMSDlg::InitSystemInfoTable()
 
 	nRow = m_listSystemInfo.AppendRow();
 	m_listSystemInfo.SetCell(nRow, 0, "MWLView Count");
+
+	m_listSystemInfo.SetUser(this);
 }
 
 void CTinySMMSDlg::LoadSystemInfo()
@@ -1674,7 +1676,10 @@ BOOL CTinySMMSDlg::OnKeyPressed( CListCtrl* pListCtrl, WPARAM nKeyCode )
 {
 	if (nKeyCode == VK_F5)
 	{
-		OnFilterTextChanged(pListCtrl, -1, "");
+		if (m_listSystemInfo.IsWindowVisible())
+			LoadSystemInfo();
+		else
+			OnFilterTextChanged(pListCtrl, -1, "");
 	}
 
 	return TRUE;
