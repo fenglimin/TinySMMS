@@ -18,26 +18,32 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // CAboutDlg dialog used for App About
 
-#define WM_MSG_QUERY_PATIENT		(WM_USER +100)
-#define WM_MSG_QUERY_STUDY			(WM_USER +101)
-#define WM_MSG_QUERY_SERIES			(WM_USER +102)
-#define WM_MSG_QUERY_IMAGE			(WM_USER +103)
-#define WM_MSG_QUERY_SMS			(WM_USER +104)
+#define WM_MSG_QUERY_PATIENT					(WM_USER +100)
+#define WM_MSG_QUERY_STUDY						(WM_USER +101)
+#define WM_MSG_QUERY_SERIES						(WM_USER +102)
+#define WM_MSG_QUERY_IMAGE						(WM_USER +103)
+#define WM_MSG_QUERY_SMS						(WM_USER +104)
+#define WM_MSG_QUERY_ORDER						(WM_USER +105)
+#define WM_MSG_QUERY_VIEW						(WM_USER +106)
 
-#define WM_MSG_DELETE_PATIENT		(WM_USER +114)
-#define WM_MSG_DELETE_STUDY			(WM_USER +115)
-#define WM_MSG_DELETE_SERIES		(WM_USER +116)
-#define WM_MSG_DELETE_IMAGE			(WM_USER +117)
+#define WM_MSG_DELETE_PATIENT					(WM_USER +200)
+#define WM_MSG_DELETE_STUDY						(WM_USER +201)
+#define WM_MSG_DELETE_SERIES					(WM_USER +202)
+#define WM_MSG_DELETE_IMAGE						(WM_USER +203)
+#define WM_MSG_DELETE_ORDER						(WM_USER +204)
+#define WM_MSG_DELETE_VIEW						(WM_USER +205)
 
-#define WM_MSG_DELETE_ALL_SELECTED_PATIENT		(WM_USER +118)
-#define WM_MSG_DELETE_ALL_SELECTED_STUDY		(WM_USER +119)
-#define WM_MSG_DELETE_ALL_SELECTED_SERIES		(WM_USER +120)
-#define WM_MSG_DELETE_ALL_SELECTED_IMAGE		(WM_USER +121)
+#define WM_MSG_DELETE_ALL_SELECTED_PATIENT		(WM_USER +300)
+#define WM_MSG_DELETE_ALL_SELECTED_STUDY		(WM_USER +301)
+#define WM_MSG_DELETE_ALL_SELECTED_SERIES		(WM_USER +302)
+#define WM_MSG_DELETE_ALL_SELECTED_IMAGE		(WM_USER +303)
+#define WM_MSG_DELETE_ALL_SELECTED_ORDER		(WM_USER +304)
+#define WM_MSG_DELETE_ALL_SELECTED_VIEW			(WM_USER +305)
 
-#define WM_MSG_VIEW_PSSI			(WM_USER +122)
+#define WM_MSG_VIEW_PSSI						(WM_USER +400)
 
-#define WM_MSG_OPEN_STUDY_DIR		(WM_USER +123)
-#define WM_MSG_OPEN_IMAGE			(WM_USER +124)
+#define WM_MSG_OPEN_STUDY_DIR					(WM_USER +500)
+#define WM_MSG_OPEN_IMAGE						(WM_USER +501)
 
 class CAboutDlg : public CDialog
 {
@@ -699,7 +705,7 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 	menu.LoadMenu(IDR_MENU1);
 
 	CString strUpTable, strDownTable, strUpTableKeyColumn, strDownTableKeyColumn;
-	CString strSqlPatient, strSqlStudy, strSqlSeries, strSqlImage;
+	CString strSqlPatient, strSqlStudy, strSqlSeries, strSqlImage, strSqlOrder, strSqlView;
 	CString strKeyValueDown, strKeyValueUp, strMenuText, strDeleteKey;
 	if ( m_strCurrentTable.CompareNoCase("patient") == 0 )
 	{
@@ -716,6 +722,13 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_IMAGE, "Query Image ( PatientID = " + strMenuText + " )");
 		strSqlImage.Format("SELECT * FROM Image WHERE SeriesInstanceUID IN ( SELECT SeriesInstanceUID FROM Series WHERE StudyInstanceUID IN ( SELECT StudyInstanceUID FROM Study WHERE PatientGUID = '%s'))",strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_ORDER, "Query Order ( PatientID = " + strMenuText + " )");
+		strSqlOrder.Format("SELECT * FROM MWLOrder WHERE PatientID = '%s'", strMenuText );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_VIEW, "Query View ( PatientID = " + strMenuText + " )");
+		strSqlView.Format("SELECT * FROM MWLView WHERE MWLOrderKey IN (SELECT MWLOrderKey FROM MWLOrder WHERE PatientID = '%s')", strMenuText );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_PATIENT, "Delete Patient ( PatientID = " + strMenuText + " )");
@@ -838,6 +851,14 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 	case WM_MSG_QUERY_IMAGE:
 		ChangeCurrentTable("Image");
 		RunSQL(strSqlImage, TRUE);
+		break;
+	case WM_MSG_QUERY_ORDER:
+		ChangeCurrentTable("MWLOrder");
+		RunSQL(strSqlOrder, TRUE);
+		break;
+	case WM_MSG_QUERY_VIEW:
+		ChangeCurrentTable("MWLView");
+		RunSQL(strSqlView, TRUE);
 		break;
 	case WM_MSG_DELETE_IMAGE:
 	case WM_MSG_DELETE_SERIES:
