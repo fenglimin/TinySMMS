@@ -139,7 +139,7 @@ public:
 	void		HitTest(LV_HITTESTINFO&  ht);
 	BOOL		CheckClick(int& nRow, int& nCol, CellFormat** pCellFormat);
 
-	void		Sort( int iColumn, BOOL bAscending );
+	void		Sort( int iColumn, BOOL bAscending, BOOL bOnlySet = FALSE );
 	void		SortPrevious();
 	int			NumberCompare( LPCTSTR pszNumber1, LPCTSTR pszNumber2 );
 	int			DateCompare( const CString& strDate1, const CString& strDate2, ColumnCompareType iType);

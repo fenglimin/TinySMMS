@@ -1607,7 +1607,7 @@ void CCustomListCtrl::OnColumnClick( NMHDR* pNMHDR, LRESULT* pResult )
 }
 
 
-void CCustomListCtrl::Sort( int nColumn, BOOL bAscending )
+void CCustomListCtrl::Sort( int nColumn, BOOL bAscending, BOOL bOnlySet )
 {
 	m_nSortColumn = nColumn;
 	m_bSortAscending = bAscending;
@@ -1615,7 +1615,8 @@ void CCustomListCtrl::Sort( int nColumn, BOOL bAscending )
 	// show the appropriate arrow in the header control.
 	m_ctrlHeader.SetSortArrow( m_nSortColumn, m_bSortAscending );
 
-	VERIFY( SortItems( CompareFunction, reinterpret_cast<DWORD>( this ) ) );
+	if (!bOnlySet)
+		VERIFY( SortItems( CompareFunction, reinterpret_cast<DWORD>( this ) ) );
 }
 
 void CCustomListCtrl::SortPrevious()

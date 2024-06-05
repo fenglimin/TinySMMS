@@ -1401,6 +1401,7 @@ void CTinySMMSDlg::ChangeCurrentTable(const CString & strTableName)
 	}
 
 	m_pCurrentList->SetFocus();
+	m_pCurrentList->SortPrevious();
 }
 
 vector<CString> CTinySMMSDlg::GetSeriesDetail( const CString& strStudyInstnaceUID )
@@ -1504,7 +1505,8 @@ void CTinySMMSDlg::OnButtonPatient()
 	ChangeCurrentTable("Patient");
 	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 	{
-		RunSQL("SELECT TOP 100 * FROM Patient ORDER BY SerialNo DESC", TRUE);
+		RunSQL("SELECT * FROM Patient ORDER BY SerialNo DESC", TRUE);
+		m_pCurrentList->Sort(0, FALSE, TRUE);
 	}
 }
 
@@ -1513,7 +1515,8 @@ void CTinySMMSDlg::OnButtonStudy()
 	ChangeCurrentTable("Study");
 	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 	{
-		RunSQL("SELECT TOP 100 * FROM Study ORDER BY SerialNo DESC", TRUE);
+		RunSQL("SELECT * FROM Study ORDER BY SerialNo DESC", TRUE);
+		m_pCurrentList->Sort(0, FALSE, TRUE);
 	}
 }
 
@@ -1522,7 +1525,8 @@ void CTinySMMSDlg::OnButtonSeries()
 	ChangeCurrentTable("Series");
 	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 	{
-		RunSQL("SELECT TOP 100 * FROM Series ORDER BY SerialNo DESC", TRUE);
+		RunSQL("SELECT * FROM Series ORDER BY SerialNo DESC", TRUE);
+		m_pCurrentList->Sort(0, FALSE, TRUE);
 	}
 }
 
@@ -1531,7 +1535,8 @@ void CTinySMMSDlg::OnButtonImage()
 	ChangeCurrentTable("Image");
 	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 	{
-		RunSQL("SELECT TOP 100 * FROM Image ORDER BY SerialNo DESC", TRUE);
+		RunSQL("SELECT * FROM Image ORDER BY SerialNo DESC", TRUE);
+		m_pCurrentList->Sort(0, FALSE, TRUE);
 	}
 }
 
@@ -1541,7 +1546,8 @@ void CTinySMMSDlg::OnBnClickedButtonSms1()
 	ChangeCurrentTable("SMS");
 	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 	{
-		RunSQL("SELECT TOP 100 * FROM SMS ORDER BY SUID DESC", TRUE);
+		RunSQL("SELECT * FROM SMS ORDER BY SUID DESC", TRUE);
+		m_pCurrentList->Sort(0, FALSE, TRUE);
 	}
 }
 
@@ -1551,7 +1557,8 @@ void CTinySMMSDlg::OnBnClickedButtonWmlorder()
 	ChangeCurrentTable("MWLOrder");
 	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 	{
-		RunSQL("SELECT TOP 100 * FROM MWLOrder ORDER BY MWLOrderKey DESC", TRUE);
+		RunSQL("SELECT * FROM MWLOrder ORDER BY MWLOrderKey DESC", TRUE);
+		m_pCurrentList->Sort(0, FALSE, TRUE);
 	}
 }
 
@@ -1561,7 +1568,8 @@ void CTinySMMSDlg::OnBnClickedButtonMwlview()
 	ChangeCurrentTable("MWLView");
 	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 	{
-		RunSQL("SELECT TOP 100 * FROM MWLView ORDER BY MWLViewKey DESC", TRUE);
+		RunSQL("SELECT * FROM MWLView ORDER BY MWLViewKey DESC", TRUE);
+		m_pCurrentList->Sort(0, FALSE, TRUE);
 	}
 }
 
