@@ -535,7 +535,7 @@ BOOL CTinySMMSDlg::RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToComman
 		strTitle.Format("TinySMMS - Total %d rows selected!", nRow);
 		SetWindowText(strTitle);
 		
-		int nIndex = strSQL.MakeUpper().Find("FROM");
+		int nIndex = strSQL.MakeUpper().Find("FROM ");
 		if (nIndex != -1)
 		{
 			CString strTableName = strSQL.Right(strSQL.GetLength() - nIndex - 4);
@@ -829,6 +829,25 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_SMS, strKeyValueDown)));
 	}
+	else if ( m_strCurrentTable.CompareNoCase("MWLOrder") == 0 )
+	{
+		strKeyValueDown = GetTextByColumnName(pList, nRow, "MWLOrderKey");
+		strMenuText = GetTextByColumnName(pList, nRow, "PatientID");
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PATIENT, "Query Patient ( PatientID = " + strMenuText + " )");
+		strSqlPatient.Format("SELECT * FROM Patient WHERE PatientID = '%s'", strMenuText );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_STUDY, "Query Study ( PatientID = " + strMenuText + " )");
+		strSqlStudy.Format("SELECT * FROM Study WHERE PatientGUID IN (SELECT PatientGUID FROM Patient WHERE PatientID = '%s')", strMenuText );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SERIES, "Query Series ( PatientID = " + strMenuText + " )");
+		strSqlSeries.Format("SELECT * FROM Series WHERE StudyInstanceUID IN (SELECT StudyInstanceUID FROM Study WHERE PatientGUID IN (SELECT PatientGUID FROM Patient WHERE PatientID = '%s'))",strMenuText );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_IMAGE, "Query Image ( PatientID = " + strMenuText + " )");
+		strSqlImage.Format("SELECT * FROM Image WHERE SeriesInstanceUID IN (SELECT SeriesInstanceUID FROM Series WHERE StudyInstanceUID IN (SELECT StudyInstanceUID FROM Study WHERE PatientGUID IN (SELECT PatientGUID FROM Patient WHERE PatientID = '%s')))",strMenuText );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ORDER, "Delete Order ( PatientID = " + strMenuText + ", OrderKey = " + strKeyValueDown + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_ORDER, "Delete All Selected Orders");
+	}
 
 	CString strSql;	
 	int nResult = menu.GetSubMenu(0)->TrackPopupMenu(TPM_LEFTALIGN|TPM_RETURNCMD, point.x, point.y, this);
@@ -870,6 +889,8 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 	case WM_MSG_DELETE_SERIES:
 	case WM_MSG_DELETE_STUDY:
 	case WM_MSG_DELETE_PATIENT:
+	case WM_MSG_DELETE_ORDER:
+	case WM_MSG_DELETE_VIEW:
 		if(DeletePSSI(nResult, strKeyValueDown))
 		{
 			m_pCurrentList->DeleteItem(nRow);
@@ -885,7 +906,9 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 	case WM_MSG_DELETE_ALL_SELECTED_SERIES:
 	case WM_MSG_DELETE_ALL_SELECTED_STUDY:
 	case WM_MSG_DELETE_ALL_SELECTED_PATIENT:
-		DeleteAllSelectedPssi(nResult - 4);
+	case WM_MSG_DELETE_ALL_SELECTED_ORDER:
+	case WM_MSG_DELETE_ALL_SELECTED_VIEW:
+		DeleteAllSelectedPssi(nResult - 100);
 		break;
 	}
 	return TRUE;
@@ -933,9 +956,17 @@ void CTinySMMSDlg::DeleteAllSelectedPssi(int nType)
 		{
 			strKeyColumnName = "SeriesInstanceUID";
 		}
-		else 
+		else if (nType == WM_MSG_DELETE_IMAGE)
 		{
 			strKeyColumnName = "SOPInstanceUID";
+		}
+		else if (nType == WM_MSG_DELETE_ORDER)
+		{
+			strKeyColumnName = "MWLOrderKey";
+		}
+		else if (nType == WM_MSG_DELETE_VIEW)
+		{
+			strKeyColumnName = "MWLViewKey";
 		}
 
 		CString strUID = GetTextByColumnName(m_pCurrentList, nRow, strKeyColumnName);
@@ -1078,7 +1109,21 @@ BOOL CTinySMMSDlg::DeletePSSI( int nType, CString strUID )
 		vecSqlList.push_back("Delete from Image where Image.SeriesInstanceUID = '" + strUID + "'");
 		vecSqlList.push_back("Delete from Series where Series.SeriesInstanceUID = '" + strUID + "'");
 	}
-	else 
+	else if (nType == WM_MSG_DELETE_IMAGE)
+	{
+		vecSqlList.push_back("Delete from Image where Image.SopInstanceUID = '" + strUID + "'");
+	}
+	else if (nType == WM_MSG_DELETE_ORDER)
+	{
+		vecSqlList.push_back("Delete Image from Image, Series, Study, MWLOrder where Image.SeriesInstanceUID = Series.SeriesInstanceUID and Series.StudyInstanceUID = Study.StudyInstanceUID and Study.SerialNo = MWLOrder.StudyKey and MWLOrder.MWLOrderKey =" + strUID);
+		vecSqlList.push_back("Delete Series from Series, Study, MWLOrder where Series.StudyInstanceUID = Study.StudyInstanceUID and Study.SerialNo = MWLOrder.StudyKey and MWLOrder.MWLOrderKey =" + strUID);
+		vecSqlList.push_back("Delete SMS from SMS, Study, MWLOrder where SMS.SUID = Study.StudyInstanceUID and Study.SerialNo = MWLOrder.StudyKey and MWLOrder.MWLOrderKey =" + strUID);
+		vecSqlList.push_back("Delete from MWLView where MWLOrderKey =" + strUID);
+		vecSqlList.push_back("Delete from MWLOrderExtendField where MWLOrderKey =" + strUID);
+		vecSqlList.push_back("Delete Study from Study, MWLOrder where Study.SerialNo = MWLOrder.StudyKey and MWLOrder.MWLOrderKey =" + strUID);
+		vecSqlList.push_back("Delete from MWLOrder where MWLOrderKey =" + strUID);		
+	}
+	else if (nType == WM_MSG_DELETE_VIEW)
 	{
 		vecSqlList.push_back("Delete from Image where Image.SopInstanceUID = '" + strUID + "'");
 	}
@@ -1354,6 +1399,8 @@ void CTinySMMSDlg::ChangeCurrentTable(const CString & strTableName)
 		m_pCurrentList = &m_listResult;
 		m_pCurrentList->ShowWindow(SW_SHOW);
 	}
+
+	m_pCurrentList->SetFocus();
 }
 
 vector<CString> CTinySMMSDlg::GetSeriesDetail( const CString& strStudyInstnaceUID )
