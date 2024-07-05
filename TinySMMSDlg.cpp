@@ -845,6 +845,10 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 		strSqlImage.Format("SELECT * FROM Image WHERE SeriesInstanceUID IN (SELECT SeriesInstanceUID FROM Series WHERE StudyInstanceUID IN (SELECT StudyInstanceUID FROM Study WHERE PatientGUID IN (SELECT PatientGUID FROM Patient WHERE PatientID = '%s')))",strMenuText );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_VIEW, "Query View ( MWLOrderKey = " + strKeyValueDown + " )");
+		strSqlView.Format("SELECT * FROM MWLView WHERE MWLOrderKey = '%s'", strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ORDER, "Delete Order ( PatientID = " + strMenuText + ", OrderKey = " + strKeyValueDown + " )");
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_ORDER, "Delete All Selected Orders");
 	}
