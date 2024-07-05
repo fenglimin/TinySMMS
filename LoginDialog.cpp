@@ -54,11 +54,12 @@ void CLoginDialog::OnOK()
 	m_comPassword.GetLBText(m_comPassword.GetCurSel(), m_strPassword);
 	UpdateData();
 
-	CString strDbConnStr = "Password=" + m_strPassword +
-					 ";Provider=" + m_strProvider + 
+	//"DRIVER={SQL Server};SERVER=your_server_name;DATABASE=your_database_name;Trusted_Connection=Yes;"
+
+	CString strDbConnStr = "Provider=" + m_strProvider + 
 					 ";Data Source=" + m_strServerName +
 					 ";Initial Catalog=" + m_strDatabase +
-					 ";User ID=" + m_strUserName + ";ole db services = -2;";
+					 ";Trusted_Connection=Yes;";
 	
 	
 	if(!DoLogin(FALSE))
@@ -101,11 +102,16 @@ BOOL CLoginDialog::OnInitDialog()
 
 BOOL CLoginDialog::DoLogin(BOOL bStopIfFailed)
 {
-	CString strDbConnStr = "Password=" + m_strPassword +
-		";Provider=" + m_strProvider + 
+	//CString strDbConnStr = "Password=" + m_strPassword +
+	//	";Provider=" + m_strProvider + 
+	//	";Data Source=" + m_strServerName +
+	//	";Initial Catalog=" + m_strDatabase +
+	//	";User ID=" + m_strUserName + ";ole db services = -2;";
+
+	CString strDbConnStr = "Provider=" + m_strProvider + 
 		";Data Source=" + m_strServerName +
 		";Initial Catalog=" + m_strDatabase +
-		";User ID=" + m_strUserName + ";ole db services = -2;";
+		";Trusted_Connection=Yes;";
 
 	if (m_pDBConn->Open(strDbConnStr, "", "", !bStopIfFailed))
 	{
