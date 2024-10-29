@@ -90,7 +90,7 @@ BOOL CLoginDialog::OnInitDialog()
 	m_strServerName = "localhost\\GCPACSWS";
 	m_strDatabase = "WGGC";
 	m_strUserName = "pdchi";
-	m_strProvider = "SQLNCLI10";
+	m_strProvider = "SQLOLEDB";
 
 	m_comPassword.SetCurSel(0);
 	
