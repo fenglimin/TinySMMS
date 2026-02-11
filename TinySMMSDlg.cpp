@@ -153,6 +153,7 @@ BEGIN_MESSAGE_MAP(CTinySMMSDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_ROLE_PROFILE, &CTinySMMSDlg::OnBnClickedButtonRoleProfile)
 	ON_BN_CLICKED(IDC_BUTTON_SYSTEM_PROFILE, &CTinySMMSDlg::OnBnClickedButtonSystemProfile)
 	ON_BN_CLICKED(IDC_BUTTON_SYSTEM_INFO, &CTinySMMSDlg::OnBnClickedButtonSystemInfo)
+	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -211,37 +212,119 @@ BOOL CTinySMMSDlg::OnInitDialog()
 	}
 
 	m_pDBConn = loginDlg.m_pDBConn;
+	m_nProductType = loginDlg.m_nProductType;
 
-	m_vecCommonTables.push_back("Patient");
-	m_vecCommonTables.push_back("Study");
-	m_vecCommonTables.push_back("Series");
-	m_vecCommonTables.push_back("Image");
-	m_vecCommonTables.push_back("SMS");
-	m_vecCommonTables.push_back("MWLOrder");
-	m_vecCommonTables.push_back("MWLView");
-	m_vecCommonTables.push_back("SystemProfile");
-	m_vecCommonTables.push_back("RoleProfile");
-	m_vecCommonTables.push_back("UserProfile");
-	m_vecCommonTables.push_back("NetAE");
-	m_vecCommonTables.push_back("StorageAE");
-	m_vecCommonTables.push_back("PrintJob");
-	m_vecCommonTables.push_back("RuleJob");
-	m_vecCommonTables.push_back("RuleJobItem");
-	m_vecCommonTables.push_back("TagMapping");
-	m_vecCommonTables.push_back("UserDefinedField");
-	m_vecCommonTables.push_back("------------------------------");
+	if (m_nProductType != PRODUCT_IS)
+	{
+		m_vecCommonTables.push_back("Patient");
+		m_vecCommonTables.push_back("Study");		
+	}
+	
+	if (m_nProductType == PRODUCT_IS)
+	{
+		m_vecCommonTables.push_back("Series");
+		m_vecCommonTables.push_back("Image");
+		m_vecCommonTables.push_back("SMS");
+		m_vecCommonTables.push_back("MWLOrder");
+		m_vecCommonTables.push_back("MWLView");
+		m_vecCommonTables.push_back("SystemProfile");
+		m_vecCommonTables.push_back("RoleProfile");
+		m_vecCommonTables.push_back("UserProfile");
+		m_vecCommonTables.push_back("NetAE");
+		m_vecCommonTables.push_back("StorageAE");
+		m_vecCommonTables.push_back("PrintJob");
+		m_vecCommonTables.push_back("RuleJob");
+		m_vecCommonTables.push_back("RuleJobItem");
+		m_vecCommonTables.push_back("TagMapping");
+		m_vecCommonTables.push_back("UserDefinedField");		
+	}
+	else if (m_nProductType == PRODUCT_IV)
+	{
+		m_vecCommonTables.push_back("ProcedureStep");
+		m_vecCommonTables.push_back("Series");
+		m_vecCommonTables.push_back("CaptureImage");
+	}
+	else if (m_nProductType == PRODUCT_CT)
+	{
+		m_vecCommonTables.push_back("ProcedureStep");
+		m_vecCommonTables.push_back("Series");
+		m_vecCommonTables.push_back("CaptureImage");
+		m_vecCommonTables.push_back("CtProtocol");
+		m_vecCommonTables.push_back("CtProtocolScans");
+		m_vecCommonTables.push_back("CtScan");
+		m_vecCommonTables.push_back("CtReconstruction");
+		m_vecCommonTables.push_back("CtScanParam");
+		m_vecCommonTables.push_back("CtReconParam");
+		m_vecCommonTables.push_back("CtImageScanParam");
+		m_vecCommonTables.push_back("CtImageReconParam");
+		m_vecCommonTables.push_back("CtParameterConfig");
+	}
 
-	m_mapTableResult["Patient"] = &m_listPatient;
-	m_mapTableResult["Study"] = &m_listStudy; 
-	m_mapTableResult["Series"] = &m_listSeries; 
-	m_mapTableResult["Image"] = &m_listImage; 
-	m_mapTableResult["SMS"] = &m_listSms;
-	m_mapTableResult["MwlOrder"] = &m_listMwlOrder;
-	m_mapTableResult["MwlView"] = &m_listMwlView;
-	m_mapTableResult["UserProfile"] = &m_listUserProfile;
-	m_mapTableResult["RoleProfile"] = &m_listRoleProfile;
-	m_mapTableResult["SystemProfile"] = &m_listSystemProfile;
+	if (m_nProductType != PRODUCT_IS)
+	{
+		m_vecCommonTables.push_back("------------------------------");
+		
+		m_mapTableResult["Patient"] = &m_listPatient;
+		m_mapTableResult["Study"] = &m_listStudy; 
+		m_mapTableResult["Series"] = &m_listSeries;
+	}
+
+	if (m_nProductType == PRODUCT_IS)
+	{
+		m_mapTableResult["Image"] = &m_listImage; 
+		m_mapTableResult["MwlOrder"] = &m_listMwlOrder;
+		m_mapTableResult["MwlView"] = &m_listMwlView;
+		m_mapTableResult["SMS"] = &m_listSms;
+		m_mapTableResult["UserProfile"] = &m_listUserProfile;
+		m_mapTableResult["RoleProfile"] = &m_listRoleProfile;
+		m_mapTableResult["SystemProfile"] = &m_listSystemProfile;		
+	}
+	else if (m_nProductType == PRODUCT_IV)
+	{
+		m_mapTableResult["CaptureImage"] = &m_listImage;
+		m_mapTableResult["ProcedureStep"] = &m_listSms;
+		SetDlgItemText(IDC_BUTTON_SMS1, "ProcStep");
+
+		m_mapTableResult["MwlOrder"] = &m_listMwlOrder;
+		GetDlgItem(IDC_BUTTON_WMLORDER)->ShowWindow(SW_HIDE);
+
+		m_mapTableResult["MwlView"] = &m_listMwlView;
+		GetDlgItem(IDC_BUTTON_MWLVIEW)->ShowWindow(SW_HIDE);
+
+		m_mapTableResult["UserProfile"] = &m_listUserProfile;
+		GetDlgItem(IDC_BUTTON_USER_PROFILE)->ShowWindow(SW_HIDE);
+
+		m_mapTableResult["RoleProfile"] = &m_listRoleProfile;
+		GetDlgItem(IDC_BUTTON_ROLE_PROFILE)->ShowWindow(SW_HIDE);
+
+		m_mapTableResult["SystemProfile"] = &m_listSystemProfile;
+		GetDlgItem(IDC_BUTTON_SYSTEM_PROFILE)->ShowWindow(SW_HIDE);
+	}
+	else if (m_nProductType == PRODUCT_CT)
+	{
+		m_mapTableResult["CaptureImage"] = &m_listImage;
+		m_mapTableResult["ProcedureStep"] = &m_listSms;
+		SetDlgItemText(IDC_BUTTON_SMS1, "ProcStep");
+
+		m_mapTableResult["Protocol"] = &m_listMwlOrder;
+		SetDlgItemText(IDC_BUTTON_WMLORDER, "Protocol");
+
+		m_mapTableResult["ProtocolScan"] = &m_listMwlView;
+		SetDlgItemText(IDC_BUTTON_MWLVIEW, "ProtocolScan");
+
+		m_mapTableResult["Scan"] = &m_listUserProfile;
+		SetDlgItemText(IDC_BUTTON_USER_PROFILE, "Scan");
+		
+		m_mapTableResult["Reconstruction"] = &m_listRoleProfile;
+		SetDlgItemText(IDC_BUTTON_ROLE_PROFILE, "Recon");
+
+		m_mapTableResult["SystemProfile"] = &m_listSystemProfile;
+		GetDlgItem(IDC_BUTTON_SYSTEM_PROFILE)->ShowWindow(SW_HIDE);
+	}
+
 	m_mapTableResult["OtherTable"] = &m_listResult;
+
+	
 
 	for (map<CString, CCustomListCtrl*>::iterator it = m_mapTableResult.begin(); it != m_mapTableResult.end(); it++)
 	{
@@ -261,6 +344,8 @@ BOOL CTinySMMSDlg::OnInitDialog()
 	
 	InitSystemInfoTable();
 	LoadSystemInfo();
+
+	GetClientRect(&m_rectClient);
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -492,7 +577,10 @@ BOOL CTinySMMSDlg::RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToComman
 				case 129:	// char
 				case 200:	// varchar
 					nCoumnWidth = (int)(fieldInfo.m_lSize * 2.5);
-					
+					break;
+				case 72:	// ID
+					nCoumnWidth = 300;
+					break;					
 				}
 
 				int nTextWidth = GetDC()->GetTextExtent(fieldInfo.m_strName).cx + 15;
@@ -1689,19 +1777,22 @@ void CTinySMMSDlg::InitSystemInfoTable()
 void CTinySMMSDlg::LoadSystemInfo()
 {
 	int nRow = 0;
-	m_listSystemInfo.SetCell(nRow++, 1, GetProfileValue("GI_Version"));
-	m_listSystemInfo.SetCell(nRow++, 1, GetProfileValue("GI_InstallTime"));
-	m_listSystemInfo.SetCell(nRow++, 1, GetProfileValue("GI_Language"));
-	m_listSystemInfo.SetCell(nRow++, 1, GetProfileValue("GI_ProductName"));
-	m_listSystemInfo.SetCell(nRow++, 1, GetProfileValue("GI_SystemName"));
-	m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("Patient"));
-	m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("Study"));
-	m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("Series"));
-	m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("Image"));
-	m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("SMS"));
-	m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("MWLOrder"));
-	m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("MWLView"));
 
+	if (m_nProductType == PRODUCT_IS)
+	{
+		m_listSystemInfo.SetCell(nRow++, 1, GetProfileValue("GI_Version"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetProfileValue("GI_InstallTime"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetProfileValue("GI_Language"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetProfileValue("GI_ProductName"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetProfileValue("GI_SystemName"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("Patient"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("Study"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("Series"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("Image"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("SMS"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("MWLOrder"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("MWLView"));
+	}
 }
 
 CString CTinySMMSDlg::GetTableRowCount( const CString& strTableName )
@@ -1769,4 +1860,61 @@ BOOL CTinySMMSDlg::OnKeyPressed( CListCtrl* pListCtrl, WPARAM nKeyCode )
 	}
 
 	return TRUE;
+}
+
+
+void CTinySMMSDlg::OnSize(UINT nType, int cx, int cy)
+{
+	__super::OnSize(nType, cx, cy);
+
+	CRect rectOld = m_rectClient;
+	GetClientRect(&m_rectClient);
+
+	if (rectOld.Width() == 0 || cx == 0 || cy == 0)
+		return;
+
+	int nWidthDiff = m_rectClient.right - rectOld.right;
+	int nHeightDiff = m_rectClient.bottom - rectOld.bottom;
+
+	MoveControl(nWidthDiff, nHeightDiff, IDC_BUTTON_RELOAD, FALSE, TRUE, FALSE, FALSE);
+	MoveControl(nWidthDiff, nHeightDiff, IDC_LIST_TABS, FALSE, FALSE, TRUE, FALSE);
+	MoveControl(nWidthDiff, nHeightDiff, IDC_EDIT_SQL, FALSE, FALSE, FALSE, TRUE);
+	MoveControl(nWidthDiff, nHeightDiff, IDC_LIST_RESULT, FALSE, FALSE, TRUE, TRUE);
+	MoveControl(nWidthDiff, nHeightDiff, IDC_LIST_SYSTEM_INFO, FALSE, FALSE, TRUE, TRUE);
+
+	for (map<CString, CCustomListCtrl*>::iterator it = m_mapTableResult.begin(); it != m_mapTableResult.end(); it++)
+	{
+		MoveControl(nWidthDiff, nHeightDiff, it->second->GetDlgCtrlID(), FALSE, FALSE, TRUE, TRUE);
+	}
+}
+
+void CTinySMMSDlg::MoveControl(int nWidthDiff, int nHeightDiff, int nID, BOOL bMoveLeft, BOOL bMoveTop, BOOL bChangeHeight, BOOL bChangeWidth)
+{
+	CWnd* pChildWnd = GetDlgItem(nID);
+	CRect rect;
+	pChildWnd->GetWindowRect(&rect);
+	ScreenToClient(&rect);
+
+	int nOldHeight = rect.Height();
+	int nOldWidth = rect.Width();
+
+	if (bMoveLeft)
+	{
+		rect.left += nWidthDiff;
+		rect.right += nWidthDiff;
+	}
+
+	if (bMoveTop)
+	{
+		rect.top += nHeightDiff;
+		rect.bottom += nHeightDiff;
+	}
+
+	if (bChangeWidth)
+		rect.right = rect.left + nOldWidth + nWidthDiff;
+
+	if (bChangeHeight)
+		rect.bottom = rect.top + nOldHeight + nHeightDiff;
+
+	pChildWnd->MoveWindow(&rect);
 }

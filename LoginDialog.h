@@ -7,6 +7,12 @@
 // LoginDialog.h : header file
 //
 
+
+#define PRODUCT_IS		1
+#define PRODUCT_IV		2
+#define PRODUCT_CT		3
+#define PRODUCT_OTHER	4
+
 /////////////////////////////////////////////////////////////////////////////
 // CLoginDialog dialog
 #include "ado.h"
@@ -15,6 +21,8 @@ class CLoginDialog : public CDialog
 // Construction
 public:
 	CADODatabase* m_pDBConn;
+
+	int	m_nProductType;
 	
 	CLoginDialog(CWnd* pParent = NULL);   // standard constructor
 
@@ -48,6 +56,11 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	CString m_strProvider;
+	void SetProductType(int nProductTypes);
+void OnBnClickedRadioIs();
+	afx_msg void OnBnClickedRadioIv();
+	afx_msg void OnBnClickedRadioCt();
+	afx_msg void OnBnClickedRadioOther();
 };
 
 //{{AFX_INSERT_LOCATION}}

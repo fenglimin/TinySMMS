@@ -42,6 +42,10 @@
 #define IDC_BUTTON_WMLORDER             1021
 #define IDC_BUTTON4                     1022
 #define IDC_BUTTON_MWLVIEW              1022
+#define IDC_RADIO_IS                    1022
+#define IDC_RADIO_IV                    1023
+#define IDC_RADIO_CT                    1024
+#define IDC_RADIO_OTHER                 1025
 #define IDC_LIST_PATIENT                1027
 #define IDC_LIST_STUDY                  1028
 #define IDC_LIST_SERIES                 1029
@@ -62,9 +66,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        141
+#define _APS_NEXT_RESOURCE_VALUE        142
 #define _APS_NEXT_COMMAND_VALUE         32776
-#define _APS_NEXT_CONTROL_VALUE         1021
+#define _APS_NEXT_CONTROL_VALUE         1023
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

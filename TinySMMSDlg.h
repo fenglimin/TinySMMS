@@ -44,6 +44,7 @@ public:
 	CString m_strViewPssiClickeUID;
 	void LoadAllTables();
 	CString	GetTextByColumnName(CCustomListCtrl* pList, int nRow, const CString& strColumnName);
+	void MoveControl(int nWidthDiff, int nHeightDiff, int nID, BOOL bMoveLeft, BOOL bMoveTop, BOOL bChangeHeight, BOOL bChangeWidth);
 	CTinySMMSDlg(CWnd* pParent = NULL);	// standard constructor
 	~CTinySMMSDlg();
 
@@ -68,6 +69,7 @@ public:
 	map<CString, CCustomListCtrl*> m_mapTableResult;
 	CString	m_strSQL;
 	int		m_nClickedRow;
+	CRect		m_rectClient;
 	vector<CString> m_vecCommonTables;
 	//}}AFX_DATA
 
@@ -81,7 +83,7 @@ public:
 // Implementation
 protected:
 
-	
+	int	m_nProductType;
 	HICON m_hIcon;
 
 	// Generated message map functions
@@ -130,6 +132,7 @@ public:
 	CString GetTableRowCount( const CString& strTableName );
 	CString GetProfileValue( const CString& strPropertyName );
 	void DeleteAllSelectedPssi(int nType);
+	afx_msg void OnSize(UINT nType, int cx, int cy);
 };
 
 //{{AFX_INSERT_LOCATION}}

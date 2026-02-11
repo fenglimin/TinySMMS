@@ -19,23 +19,16 @@ CLoginDialog::CLoginDialog(CWnd* pParent /*=NULL*/)
 	: CDialog(CLoginDialog::IDD, pParent)
 	, m_strProvider(_T(""))
 {
-	//{{AFX_DATA_INIT(CLoginDialog)
-	m_strDatabase = _T("");
-	m_strServerName = _T("");
-	m_strUserName = _T("");
-	//}}AFX_DATA_INIT
-
 	m_pDBConn = new CADODatabase;
+	m_nProductType = PRODUCT_IS;
 }
 
 void CLoginDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CLoginDialog)
-	DDX_Control(pDX, IDC_COMBO_PASSWORD, m_comPassword);
-	DDX_Text(pDX, IDC_EDIT_DATABASE, m_strDatabase);
 	DDX_Text(pDX, IDC_EDIT_SERVERNAME, m_strServerName);
-	DDX_Text(pDX, IDC_EDIT_USERNAME, m_strUserName);
+	DDX_Text(pDX, IDC_EDIT_DATABASE, m_strDatabase);
 	DDX_Text(pDX, IDC_EDIT_PROVIDER, m_strProvider);
 	//}}AFX_DATA_MAP
 }
@@ -44,23 +37,18 @@ void CLoginDialog::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CLoginDialog, CDialog)
 	//{{AFX_MSG_MAP(CLoginDialog)
 	//}}AFX_MSG_MAP
+	ON_BN_CLICKED(IDC_RADIO_IS, &CLoginDialog::OnBnClickedRadioIs)
+	ON_BN_CLICKED(IDC_RADIO_IV, &CLoginDialog::OnBnClickedRadioIv)
+	ON_BN_CLICKED(IDC_RADIO_CT, &CLoginDialog::OnBnClickedRadioCt)
+	ON_BN_CLICKED(IDC_RADIO_OTHER, &CLoginDialog::OnBnClickedRadioOther)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // CLoginDialog message handlers
 
 void CLoginDialog::OnOK() 
-{
-	m_comPassword.GetLBText(m_comPassword.GetCurSel(), m_strPassword);
+{	
 	UpdateData();
-
-	//"DRIVER={SQL Server};SERVER=your_server_name;DATABASE=your_database_name;Trusted_Connection=Yes;"
-
-	CString strDbConnStr = "Provider=" + m_strProvider + 
-					 ";Data Source=" + m_strServerName +
-					 ";Initial Catalog=" + m_strDatabase +
-					 ";Trusted_Connection=Yes;";
-	
 	
 	if(!DoLogin(FALSE))
 	{
@@ -89,11 +77,10 @@ BOOL CLoginDialog::OnInitDialog()
 	
 	m_strServerName = "localhost\\GCPACSWS";
 	m_strDatabase = "WGGC";
-	m_strUserName = "pdchi";
 	m_strProvider = "SQLOLEDB";
 
-	m_comPassword.SetCurSel(0);
-	
+	((CButton*)GetDlgItem(IDC_RADIO_IS))->SetCheck(BST_CHECKED);
+
 	UpdateData(FALSE);
 	
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -124,4 +111,48 @@ BOOL CLoginDialog::DoLogin(BOOL bStopIfFailed)
 	}
 
 	return FALSE;
+}
+
+void CLoginDialog::OnBnClickedRadioIs()
+{
+	SetProductType(PRODUCT_IS);
+}
+
+
+void CLoginDialog::OnBnClickedRadioIv()
+{
+	SetProductType(PRODUCT_IV);
+}
+
+
+void CLoginDialog::OnBnClickedRadioCt()
+{
+	SetProductType(PRODUCT_CT);
+}
+
+
+void CLoginDialog::OnBnClickedRadioOther()
+{
+	SetProductType(PRODUCT_OTHER);
+}
+
+void CLoginDialog::SetProductType(int nProductTypes)
+{
+	m_nProductType = nProductTypes;
+
+	if (m_nProductType == PRODUCT_OTHER)
+		return;
+
+	if (m_nProductType == PRODUCT_IS)
+	{
+		m_strServerName = "localhost\\GCPACSWS";
+		m_strDatabase = "WGGC";
+	}
+	else if (m_nProductType == PRODUCT_IV || m_nProductType == PRODUCT_CT)
+	{
+		m_strServerName = "localhost\\CARESTREAM";
+		m_strDatabase = "CARESTREAM";
+	}
+
+	UpdateData(FALSE);
 }
