@@ -260,7 +260,7 @@ BOOL CTinySMMSDlg::OnInitDialog()
 		m_vecCommonTables.push_back("CtParameterConfig");
 	}
 
-	if (m_nProductType != PRODUCT_IS)
+	if (m_nProductType != PRODUCT_OTHER)
 	{
 		m_vecCommonTables.push_back("------------------------------");
 		
@@ -306,16 +306,16 @@ BOOL CTinySMMSDlg::OnInitDialog()
 		m_mapTableResult["ProcedureStep"] = &m_listSms;
 		SetDlgItemText(IDC_BUTTON_SMS1, "ProcStep");
 
-		m_mapTableResult["Protocol"] = &m_listMwlOrder;
+		m_mapTableResult["CtProtocol"] = &m_listMwlOrder;
 		SetDlgItemText(IDC_BUTTON_WMLORDER, "Protocol");
 
-		m_mapTableResult["ProtocolScan"] = &m_listMwlView;
+		m_mapTableResult["CtProtocolScans"] = &m_listMwlView;
 		SetDlgItemText(IDC_BUTTON_MWLVIEW, "ProtocolScan");
 
-		m_mapTableResult["Scan"] = &m_listUserProfile;
+		m_mapTableResult["CtScan"] = &m_listUserProfile;
 		SetDlgItemText(IDC_BUTTON_USER_PROFILE, "Scan");
 		
-		m_mapTableResult["Reconstruction"] = &m_listRoleProfile;
+		m_mapTableResult["CtReconstruction"] = &m_listRoleProfile;
 		SetDlgItemText(IDC_BUTTON_ROLE_PROFILE, "Recon");
 
 		m_mapTableResult["SystemProfile"] = &m_listSystemProfile;
@@ -750,16 +750,24 @@ BOOL CTinySMMSDlg::OnCellTextChanged(CListCtrl* pListCtrl, int nRow, int nCol, C
 		strUpdate += column.strHeaderCaption + " = " + strTemp + " ";
 	}
 
-	CString strWhere = GetWhereStatement(nRow);
-	if(!RunSQL(strUpdate + strWhere,FALSE))
+	if (m_nProductType == PRODUCT_IS || m_nProductType == PRODUCT_OTHER)
 	{
-		CString strNewWhere = GetWhereStatement(nRow, TRUE);
-		if (AfxMessageBox("Cannot update table using condition " + strWhere + "\r\n\r\nDo you want to using condition " + strNewWhere + " to update table?", MB_YESNO) == IDNO)
+		CString strWhere = GetWhereStatement(nRow);
+		if(!RunSQL(strUpdate + strWhere,FALSE))
 		{
-			return FALSE;
-		}
-		return RunSQL(strUpdate + strNewWhere,FALSE);
+			CString strNewWhere = GetWhereStatement(nRow, TRUE);
+			if (AfxMessageBox("Cannot update table using condition " + strWhere + "\r\n\r\nDo you want to using condition " + strNewWhere + " to update table?", MB_YESNO) == IDNO)
+			{
+				return FALSE;
+			}
+			return RunSQL(strUpdate + strNewWhere,FALSE);
+		}	
 	}
+	else
+	{
+		CString strWhere = GetWhereStatement(nRow, TRUE);
+		return RunSQL(strUpdate + strWhere,FALSE);
+	}	
 
 	return TRUE;
 }
@@ -1597,8 +1605,16 @@ void CTinySMMSDlg::OnButtonPatient()
 	ChangeCurrentTable("Patient");
 	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 	{
-		RunSQL("SELECT * FROM Patient ORDER BY SerialNo DESC", TRUE);
-		m_pCurrentList->Sort(0, FALSE, TRUE);
+		if (m_nProductType == PRODUCT_IS)
+		{
+			RunSQL("SELECT * FROM Patient ORDER BY SerialNo DESC", TRUE);
+			m_pCurrentList->Sort(0, FALSE, TRUE);
+		}
+		else
+		{
+			RunSQL("SELECT * FROM Patient ORDER BY DicomPatientId DESC", TRUE);
+			m_pCurrentList->Sort(6, FALSE, TRUE);
+		}		
 	}
 }
 
@@ -1607,8 +1623,16 @@ void CTinySMMSDlg::OnButtonStudy()
 	ChangeCurrentTable("Study");
 	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 	{
-		RunSQL("SELECT * FROM Study ORDER BY SerialNo DESC", TRUE);
-		m_pCurrentList->Sort(0, FALSE, TRUE);
+		if (m_nProductType == PRODUCT_IS)
+		{
+			RunSQL("SELECT * FROM Study ORDER BY SerialNo DESC", TRUE);
+			m_pCurrentList->Sort(0, FALSE, TRUE);	
+		}
+		else
+		{
+			RunSQL("SELECT * FROM Study ORDER BY AccessionNumber DESC", TRUE);
+			m_pCurrentList->Sort(1, FALSE, TRUE);
+		}
 	}
 }
 
@@ -1617,70 +1641,152 @@ void CTinySMMSDlg::OnButtonSeries()
 	ChangeCurrentTable("Series");
 	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 	{
-		RunSQL("SELECT * FROM Series ORDER BY SerialNo DESC", TRUE);
-		m_pCurrentList->Sort(0, FALSE, TRUE);
+		if (m_nProductType == PRODUCT_IS)
+		{
+			RunSQL("SELECT * FROM Series ORDER BY SerialNo DESC", TRUE);
+			m_pCurrentList->Sort(0, FALSE, TRUE);	
+		}
+		else
+		{
+			RunSQL("SELECT * FROM Series ORDER BY InstanceUid DESC", TRUE);
+			m_pCurrentList->Sort(4, FALSE, TRUE);
+		}
+		
 	}
 }
 
 void CTinySMMSDlg::OnButtonImage()
 {
-	ChangeCurrentTable("Image");
-	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+	if (m_nProductType == PRODUCT_IS)
 	{
-		RunSQL("SELECT * FROM Image ORDER BY SerialNo DESC", TRUE);
-		m_pCurrentList->Sort(0, FALSE, TRUE);
+		ChangeCurrentTable("Image");
+		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+		{
+			RunSQL("SELECT * FROM Image ORDER BY SerialNo DESC", TRUE);
+			m_pCurrentList->Sort(0, FALSE, TRUE);
+		}	
 	}
+	else
+	{
+		ChangeCurrentTable("CaptureImage");
+		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+		{
+			RunSQL("SELECT * FROM CaptureImage ORDER BY AcquisitionDateTimeCombinedDateTime DESC", TRUE);
+			m_pCurrentList->Sort(2, FALSE, TRUE);
+		}
+	}	
 }
 
 
 void CTinySMMSDlg::OnBnClickedButtonSms1()
 {
-	ChangeCurrentTable("SMS");
-	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+	if (m_nProductType == PRODUCT_IS)
 	{
-		RunSQL("SELECT * FROM SMS ORDER BY SUID DESC", TRUE);
-		m_pCurrentList->Sort(0, FALSE, TRUE);
+		ChangeCurrentTable("SMS");
+		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+		{
+			RunSQL("SELECT * FROM SMS ORDER BY SUID DESC", TRUE);
+			m_pCurrentList->Sort(0, FALSE, TRUE);
+		}	
 	}
+	else
+	{
+		ChangeCurrentTable("ProcedureStep");
+		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+		{
+			RunSQL("SELECT * FROM ProcedureStep ORDER BY CreationDateTime DESC", TRUE);
+			m_pCurrentList->Sort(1, FALSE, TRUE);
+		}
+	}	
 }
 
 
 void CTinySMMSDlg::OnBnClickedButtonWmlorder()
 {
-	ChangeCurrentTable("MWLOrder");
-	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+	if (m_nProductType == PRODUCT_IS)
 	{
-		RunSQL("SELECT * FROM MWLOrder ORDER BY MWLOrderKey DESC", TRUE);
-		m_pCurrentList->Sort(0, FALSE, TRUE);
+		ChangeCurrentTable("MWLOrder");
+		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+		{
+			RunSQL("SELECT * FROM MWLOrder ORDER BY MWLOrderKey DESC", TRUE);
+			m_pCurrentList->Sort(0, FALSE, TRUE);
+		}	
 	}
+	else
+	{
+		ChangeCurrentTable("CtProtocol");
+		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+		{
+			RunSQL("SELECT * FROM CtProtocol ORDER BY Id DESC", TRUE);
+			m_pCurrentList->Sort(0, FALSE, TRUE);
+		}
+	}
+	
 }
 
 
 void CTinySMMSDlg::OnBnClickedButtonMwlview()
 {
-	ChangeCurrentTable("MWLView");
-	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+	if (m_nProductType == PRODUCT_IS)
 	{
-		RunSQL("SELECT * FROM MWLView ORDER BY MWLViewKey DESC", TRUE);
-		m_pCurrentList->Sort(0, FALSE, TRUE);
+		ChangeCurrentTable("MWLView");
+		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+		{
+			RunSQL("SELECT * FROM MWLView ORDER BY MWLViewKey DESC", TRUE);
+			m_pCurrentList->Sort(0, FALSE, TRUE);
+		}	
 	}
+	else
+	{
+		ChangeCurrentTable("CtProtocolScans");
+		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+		{
+			RunSQL("SELECT * FROM CtProtocolScans ORDER BY Id DESC", TRUE);
+			m_pCurrentList->Sort(0, FALSE, TRUE);
+		}
+	}	
 }
 
 void CTinySMMSDlg::OnBnClickedButtonUserProfile()
 {
-	ChangeCurrentTable("UserProfile");
-	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+	if (m_nProductType == PRODUCT_IS)
 	{
-		RunSQL("SELECT TOP 100 * FROM UserProfile", TRUE);
+		ChangeCurrentTable("UserProfile");
+		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+		{
+			RunSQL("SELECT TOP 100 * FROM UserProfile", TRUE);
+		}	
 	}
+	else
+	{
+		ChangeCurrentTable("CtScan");
+		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+		{
+			RunSQL("SELECT  * FROM CtScan ORDER BY Id DESC", TRUE);
+			m_pCurrentList->Sort(0, FALSE, TRUE);
+		}
+	}	
 }
 
 void CTinySMMSDlg::OnBnClickedButtonRoleProfile()
 {
-	ChangeCurrentTable("RoleProfile");
-	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+	if (m_nProductType == PRODUCT_IS)
 	{
-		RunSQL("SELECT TOP 100 * FROM RoleProfile", TRUE);
+		ChangeCurrentTable("RoleProfile");
+		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+		{
+			RunSQL("SELECT TOP 100 * FROM RoleProfile", TRUE);
+		}	
 	}
+	else
+	{
+		ChangeCurrentTable("CtReconstruction");
+		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+		{
+			RunSQL("SELECT  * FROM CtReconstruction ORDER BY Id DESC", TRUE);
+			m_pCurrentList->Sort(0, FALSE, TRUE);
+		}
+	}	
 }
 
 void CTinySMMSDlg::OnBnClickedButtonSystemProfile()
