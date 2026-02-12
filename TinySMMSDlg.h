@@ -113,6 +113,8 @@ public:
 	virtual BOOL OnRowLClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT nFlags, CPoint point);
 	virtual BOOL OnRowLDblClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT nFlags, CPoint point);
 	virtual BOOL OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT nFlags, CPoint point);
+
+	void OnIsContextMenu(CListCtrl* pListCtrl, int nRow, int nCol, UINT nFlags, CPoint point);
 	afx_msg void OnPopupDeleteallselectedrow();
 	afx_msg void OnPopupInsertcopy32775();
 	CEdit m_editSQL;

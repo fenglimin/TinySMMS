@@ -793,6 +793,14 @@ BOOL CTinySMMSDlg::OnRowLDblClicked(CListCtrl* pListCtrl, int nRow, int nCol, UI
 
 BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT nFlags, CPoint point)
 {
+	if (m_nProductType == PRODUCT_IS)
+		OnIsContextMenu(pListCtrl, nRow, nCol, nFlags, point);
+
+	return TRUE;
+}
+
+void CTinySMMSDlg::OnIsContextMenu(CListCtrl* pListCtrl, int nRow, int nCol, UINT nFlags, CPoint point)
+{
 	CCustomListCtrl* pList = (CCustomListCtrl*)pListCtrl;
 	m_nClickedRow = nRow;
 
@@ -807,7 +815,7 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 	{
 		strKeyValueDown = GetTextByColumnName(pList, nRow, "PatientGUID");
 		strMenuText = GetTextByColumnName(pList, nRow, "PatientID");
-		
+
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_STUDY, "Query Study ( PatientID = " + strMenuText + " )");
 		strSqlStudy.Format("SELECT * FROM Study WHERE PatientGUID = '%s'", strKeyValueDown );
@@ -953,8 +961,8 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 	int nResult = menu.GetSubMenu(0)->TrackPopupMenu(TPM_LEFTALIGN|TPM_RETURNCMD, point.x, point.y, this);
 	switch ( nResult)
 	{
-	//case WM_MSG_QUERY_DOWN:
-	//	OnQueryDown()
+		//case WM_MSG_QUERY_DOWN:
+		//	OnQueryDown()
 	case ID_POPUP_DELETEALLSELECTEDROW:
 		OnPopupDeleteallselectedrow();
 		break;
@@ -1011,7 +1019,6 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 		DeleteAllSelectedPssi(nResult - 100);
 		break;
 	}
-	return TRUE;
 }
 
 void CTinySMMSDlg::OnPopupDeleteallselectedrow()
