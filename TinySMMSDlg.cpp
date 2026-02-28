@@ -825,11 +825,11 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_STUDY, "Query Study ( PatientID = " + strMenuText + " )");
 		strSqlStudy.Format("SELECT * FROM Study WHERE PatientId = '%s'", strKeyValueDown );
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PROCEDURESTEP, "Query ProcedureStep ( PatientID = " + strMenuText + " )");
-		strSqlSeries.Format("SELECT * FROM ProcedureStep WHERE StudyId IN ( SELECT Id FROM Study WHERE PatientId = '%s')", strKeyValueDown );
+		strSqlProcedureStep.Format("SELECT * FROM ProcedureStep WHERE StudyId IN ( SELECT Id FROM Study WHERE PatientId = '%s')", strKeyValueDown );
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SERIES, "Query Series ( PatientID = " + strMenuText + " )");
-		strSqlSeries.Format("SELECT * FROM Series WHERE StudyInstanceUID IN ( SELECT StudyInstanceUID FROM Study WHERE PatientGUID = '%s')",strKeyValueDown );
+		strSqlSeries.Format("SELECT * FROM Series WHERE ProcedureStepId IN ( SELECT Id FROM ProcedureStep WHERE StudyId IN ( SELECT Id FROM Study WHERE PatientId = '%s'))",strKeyValueDown );
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_IMAGE, "Query Image ( PatientID = " + strMenuText + " )");
-		strSqlImage.Format("SELECT * FROM Image WHERE SeriesInstanceUID IN ( SELECT SeriesInstanceUID FROM Series WHERE StudyInstanceUID IN ( SELECT StudyInstanceUID FROM Study WHERE PatientGUID = '%s'))",strKeyValueDown );
+		strSqlImage.Format("SELECT * FROM CaptureImage WHERE SeriesId IN ( SELECT Id FROM Series WHERE ProcedureStepId IN ( SELECT Id FROM ProcedureStep WHERE StudyId IN ( SELECT Id FROM Study WHERE PatientId = '%s')))",strKeyValueDown );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		/*menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_ORDER, "Query Order ( PatientID = " + strMenuText + " )");
@@ -846,17 +846,19 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 	}
 	else if ( m_strCurrentTable.CompareNoCase("study") == 0 )
 	{
-		strKeyValueUp = GetTextByColumnName(pList, nRow, "PatientGUID");
-		strKeyValueDown = GetTextByColumnName(pList, nRow, "StudyInstanceUID");
-		strMenuText = GetTextByColumnName(pList, nRow, "AccessionNo");
+		strKeyValueUp = GetTextByColumnName(pList, nRow, "PatientId");
+		strKeyValueDown = GetTextByColumnName(pList, nRow, "Id");
+		strMenuText = GetTextByColumnName(pList, nRow, "AccessionNumber");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PATIENT, "Query Patient ( AccessionNo = " + strMenuText + " )");
-		strSqlPatient.Format("SELECT * FROM Patient WHERE PatientGUID = '%s'", strKeyValueUp );
+		strSqlPatient.Format("SELECT * FROM Patient WHERE Id = '%s'", strKeyValueUp );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PROCEDURESTEP, "Query ProcedureStep ( AccessionNo = " + strMenuText + " )");
+		strSqlProcedureStep.Format("SELECT * FROM ProcedureStep WHERE StudyId = '%s'", strKeyValueDown );
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SERIES, "Query Series ( AccessionNo = " + strMenuText + " )");
-		strSqlSeries.Format("SELECT * FROM Series WHERE StudyInstanceUID = '%s'",strKeyValueDown );
+		strSqlSeries.Format("SELECT * FROM Series WHERE ProcedureStepId IN ( SELECT Id FROM ProcedureStep WHERE StudyId = '%s')", strKeyValueDown );
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_IMAGE, "Query Image ( AccessionNo = " + strMenuText + " )");
-		strSqlImage.Format("SELECT * FROM Image WHERE SeriesInstanceUID IN ( SELECT SeriesInstanceUID FROM Series WHERE StudyInstanceUID = '%s')",strKeyValueDown );
+		strSqlImage.Format("SELECT * FROM CaptureImage WHERE SeriesId IN ( SELECT Id FROM Series WHERE ProcedureStepId IN ( SELECT Id FROM ProcedureStep WHERE StudyId = '%s'))",strKeyValueDown );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		/*menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_ORDER, "Query Order ( AccessionNo = " + strMenuText + " )");
@@ -872,7 +874,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, WM_MSG_OPEN_STUDY_DIR, "Open Study Dir( StudyInstanceUID = " + strKeyValueDown + " )");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_STUDY, strKeyValueDown)));
+		//AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_STUDY, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("series") == 0 )
 	{
@@ -984,12 +986,16 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		ChangeCurrentTable("Study");
 		RunSQL(strSqlStudy, TRUE);
 		break;
+	case WM_MSG_QUERY_PROCEDURESTEP:
+		ChangeCurrentTable("ProcedureStep");
+		RunSQL(strSqlProcedureStep, TRUE);
+		break;
 	case WM_MSG_QUERY_SERIES:
 		ChangeCurrentTable("Series");
 		RunSQL(strSqlSeries, TRUE);
 		break;
 	case WM_MSG_QUERY_IMAGE:
-		ChangeCurrentTable("Image");
+		ChangeCurrentTable("CaptureImage");
 		RunSQL(strSqlImage, TRUE);
 		break;
 	//case WM_MSG_QUERY_ORDER:
