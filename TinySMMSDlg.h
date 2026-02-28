@@ -135,6 +135,7 @@ public:
 	CString GetProfileValue( const CString& strPropertyName );
 	void DeleteAllSelectedPssi(int nType);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+	void OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UINT nFlags, CPoint point );
 };
 
 //{{AFX_INSERT_LOCATION}}

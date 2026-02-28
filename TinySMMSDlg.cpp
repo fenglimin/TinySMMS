@@ -25,6 +25,7 @@ static char THIS_FILE[] = __FILE__;
 #define WM_MSG_QUERY_SMS						(WM_USER +104)
 #define WM_MSG_QUERY_ORDER						(WM_USER +105)
 #define WM_MSG_QUERY_VIEW						(WM_USER +106)
+#define WM_MSG_QUERY_PROCEDURESTEP				(WM_USER +107)
 
 #define WM_MSG_DELETE_PATIENT					(WM_USER +200)
 #define WM_MSG_DELETE_STUDY						(WM_USER +201)
@@ -580,7 +581,9 @@ BOOL CTinySMMSDlg::RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToComman
 					break;
 				case 72:	// ID
 					nCoumnWidth = 300;
-					break;					
+					break;	
+				default:
+					nCoumnWidth = 300;
 				}
 
 				int nTextWidth = GetDC()->GetTextExtent(fieldInfo.m_strName).cx + 15;
@@ -795,8 +798,234 @@ BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 {
 	if (m_nProductType == PRODUCT_IS)
 		OnIsContextMenu(pListCtrl, nRow, nCol, nFlags, point);
+	else if (m_nProductType == PRODUCT_CT)
+		OnCtContextMenu(pListCtrl, nRow, nCol, nFlags, point);
 
 	return TRUE;
+}
+
+void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UINT nFlags, CPoint point )
+{
+	CCustomListCtrl* pList = (CCustomListCtrl*)pListCtrl;
+	m_nClickedRow = nRow;
+
+	CMenu menu;
+	m_pCurrentList->ClientToScreen(&point);
+	menu.LoadMenu(IDR_MENU1);
+
+	CString strUpTable, strDownTable, strUpTableKeyColumn, strDownTableKeyColumn;
+	CString strSqlPatient, strSqlStudy, strSqlProcedureStep, strSqlSeries, strSqlImage;
+	CString strKeyValueDown, strKeyValueUp, strMenuText, strDeleteKey;
+	if ( m_strCurrentTable.CompareNoCase("patient") == 0 )
+	{
+		strKeyValueDown = GetTextByColumnName(pList, nRow, "Id");
+		strMenuText = GetTextByColumnName(pList, nRow, "DicomPatientId");
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_STUDY, "Query Study ( PatientID = " + strMenuText + " )");
+		strSqlStudy.Format("SELECT * FROM Study WHERE PatientId = '%s'", strKeyValueDown );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PROCEDURESTEP, "Query ProcedureStep ( PatientID = " + strMenuText + " )");
+		strSqlSeries.Format("SELECT * FROM ProcedureStep WHERE StudyId IN ( SELECT Id FROM Study WHERE PatientId = '%s')", strKeyValueDown );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SERIES, "Query Series ( PatientID = " + strMenuText + " )");
+		strSqlSeries.Format("SELECT * FROM Series WHERE StudyInstanceUID IN ( SELECT StudyInstanceUID FROM Study WHERE PatientGUID = '%s')",strKeyValueDown );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_IMAGE, "Query Image ( PatientID = " + strMenuText + " )");
+		strSqlImage.Format("SELECT * FROM Image WHERE SeriesInstanceUID IN ( SELECT SeriesInstanceUID FROM Series WHERE StudyInstanceUID IN ( SELECT StudyInstanceUID FROM Study WHERE PatientGUID = '%s'))",strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		/*menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_ORDER, "Query Order ( PatientID = " + strMenuText + " )");
+		strSqlOrder.Format("SELECT * FROM MWLOrder WHERE PatientID = '%s'", strMenuText );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_VIEW, "Query View ( PatientID = " + strMenuText + " )");
+		strSqlView.Format("SELECT * FROM MWLView WHERE MWLOrderKey IN (SELECT MWLOrderKey FROM MWLOrder WHERE PatientID = '%s')", strMenuText );*/
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_PATIENT, "Delete Patient ( PatientID = " + strMenuText + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_PATIENT, "Delete All Selected Patients");
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		//AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_PATIENT, strKeyValueDown)));
+	}
+	else if ( m_strCurrentTable.CompareNoCase("study") == 0 )
+	{
+		strKeyValueUp = GetTextByColumnName(pList, nRow, "PatientGUID");
+		strKeyValueDown = GetTextByColumnName(pList, nRow, "StudyInstanceUID");
+		strMenuText = GetTextByColumnName(pList, nRow, "AccessionNo");
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PATIENT, "Query Patient ( AccessionNo = " + strMenuText + " )");
+		strSqlPatient.Format("SELECT * FROM Patient WHERE PatientGUID = '%s'", strKeyValueUp );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SERIES, "Query Series ( AccessionNo = " + strMenuText + " )");
+		strSqlSeries.Format("SELECT * FROM Series WHERE StudyInstanceUID = '%s'",strKeyValueDown );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_IMAGE, "Query Image ( AccessionNo = " + strMenuText + " )");
+		strSqlImage.Format("SELECT * FROM Image WHERE SeriesInstanceUID IN ( SELECT SeriesInstanceUID FROM Series WHERE StudyInstanceUID = '%s')",strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		/*menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_ORDER, "Query Order ( AccessionNo = " + strMenuText + " )");
+		strSqlOrder.Format("SELECT * FROM MWLOrder WHERE StudyInstanceUID = '%s'", strKeyValueDown );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_VIEW, "Query View ( AccessionNo = " + strMenuText + " )");
+		strSqlView.Format("SELECT * FROM MWLView WHERE MWLOrderKey IN (SELECT MWLOrderKey FROM MWLOrder WHERE StudyInstanceUID = '%s')", strKeyValueDown );*/
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_STUDY, "Delete Study ( AccessionNo = " + strMenuText + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_STUDY, "Delete All Selected Studies");
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, WM_MSG_OPEN_STUDY_DIR, "Open Study Dir( StudyInstanceUID = " + strKeyValueDown + " )");
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_STUDY, strKeyValueDown)));
+	}
+	else if ( m_strCurrentTable.CompareNoCase("series") == 0 )
+	{
+		strKeyValueUp = GetTextByColumnName(pList, nRow, "StudyInstanceUID");
+		strKeyValueDown = GetTextByColumnName(pList, nRow, "SeriesInstanceUID");
+		strMenuText = GetTextByColumnName(pList, nRow, "BodyPart");
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PATIENT, "Query Patient ( BodyPart = " + strMenuText + " )");
+		strSqlPatient.Format("SELECT * FROM Patient WHERE PatientGUID IN ( SELECT PatientGUID FROM Study WHERE StudyInstanceUID = '%s')", strKeyValueUp );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_STUDY, "Query Study ( BodyPart = " + strMenuText + " )");
+		strSqlStudy.Format("SELECT * FROM Study WHERE StudyInstanceUID = '%s'",strKeyValueUp );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_IMAGE, "Query Image ( BodyPart = " + strMenuText + " )");
+		strSqlImage.Format("SELECT * FROM Image WHERE SeriesInstanceUID = '%s'",strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		/*menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_ORDER, "Query Order ( BodyPart = " + strMenuText + " )");
+		strSqlOrder.Format("SELECT * FROM MWLOrder WHERE StudyInstanceUID = '%s'", strKeyValueUp );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_VIEW, "Query View ( BodyPart = " + strMenuText + " )");
+		strSqlView.Format("SELECT * FROM MWLView WHERE Bodypart = '%s' AND MWLOrderKey IN (SELECT MWLOrderKey FROM MWLOrder WHERE StudyInstanceUID = '%s')", strMenuText, strKeyValueUp );*/
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_SERIES, "Delete Series ( BodyPart = " + strMenuText + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_SERIES, "Delete All Selected Series");
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_SERIES, strKeyValueDown)));
+	}
+	else if ( m_strCurrentTable.CompareNoCase("image") == 0 )
+	{
+		strKeyValueUp = GetTextByColumnName(pList, nRow, "SeriesInstanceUID");
+		strMenuText = GetTextByColumnName(pList, nRow, "SOPInstanceUID");
+		strKeyValueDown = strMenuText;
+		CString strImageSerialNo = GetTextByColumnName(pList, nRow, "SerialNo");
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PATIENT, "Query Patient ( SOPInstanceUID = " + strMenuText + " )");
+		strSqlPatient.Format("SELECT * FROM Patient WHERE PatientGUID IN ( SELECT PatientGUID FROM Study WHERE StudyInstanceUID IN ( SELECT StudyInstanceUID FROM Series WHERE SeriesInstanceUID = '%s'))", strKeyValueUp );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_STUDY, "Query Study ( SOPInstanceUID = " + strMenuText + " )");
+		strSqlStudy.Format("SELECT * FROM Study WHERE StudyInstanceUID IN ( SELECT StudyInstanceUID FROM Series WHERE SeriesInstanceUID = '%s')", strKeyValueUp );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SERIES, "Query Series ( SOPInstanceUID = " + strMenuText + " )");
+		strSqlSeries.Format("SELECT * FROM Series WHERE SeriesInstanceUID = '%s'",strKeyValueUp );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		/*menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_ORDER, "Query Order ( SOPInstanceUID = " + strMenuText + " )");
+		strSqlOrder.Format("SELECT * FROM MWLOrder WHERE StudyInstanceUID IN ( SELECT StudyInstanceUID FROM Series WHERE SeriesInstanceUID = '%s')", strKeyValueUp );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_VIEW, "Query View ( SOPInstanceUID = " + strMenuText + " )");
+		strSqlView.Format("SELECT * FROM MWLView WHERE ImageKey = '%s'", strImageSerialNo );*/
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_IMAGE, "Delete Image ( SOPInstanceUID = " + strMenuText + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_IMAGE, "Delete All Selected Images");
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, WM_MSG_OPEN_IMAGE, "Open Image ( SOPInstanceUID = " + strMenuText + " )");
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_IMAGE, strKeyValueDown)));
+	}
+	else if ( m_strCurrentTable.CompareNoCase("SMS") == 0 )
+	{
+		strMenuText = GetTextByColumnName(pList, nRow, "SUID");
+		strKeyValueDown = strMenuText;
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_SMS, strKeyValueDown)));
+	}
+	else if ( m_strCurrentTable.CompareNoCase("MWLOrder") == 0 )
+	{
+		strKeyValueDown = GetTextByColumnName(pList, nRow, "MWLOrderKey");
+		strMenuText = GetTextByColumnName(pList, nRow, "PatientID");
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PATIENT, "Query Patient ( PatientID = " + strMenuText + " )");
+		strSqlPatient.Format("SELECT * FROM Patient WHERE PatientID = '%s'", strMenuText );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_STUDY, "Query Study ( PatientID = " + strMenuText + " )");
+		strSqlStudy.Format("SELECT * FROM Study WHERE PatientGUID IN (SELECT PatientGUID FROM Patient WHERE PatientID = '%s')", strMenuText );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SERIES, "Query Series ( PatientID = " + strMenuText + " )");
+		strSqlSeries.Format("SELECT * FROM Series WHERE StudyInstanceUID IN (SELECT StudyInstanceUID FROM Study WHERE PatientGUID IN (SELECT PatientGUID FROM Patient WHERE PatientID = '%s'))",strMenuText );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_IMAGE, "Query Image ( PatientID = " + strMenuText + " )");
+		strSqlImage.Format("SELECT * FROM Image WHERE SeriesInstanceUID IN (SELECT SeriesInstanceUID FROM Series WHERE StudyInstanceUID IN (SELECT StudyInstanceUID FROM Study WHERE PatientGUID IN (SELECT PatientGUID FROM Patient WHERE PatientID = '%s')))",strMenuText );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		/*menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_VIEW, "Query View ( MWLOrderKey = " + strKeyValueDown + " )");
+		strSqlView.Format("SELECT * FROM MWLView WHERE MWLOrderKey = '%s'", strKeyValueDown );*/
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ORDER, "Delete Order ( PatientID = " + strMenuText + ", OrderKey = " + strKeyValueDown + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_ORDER, "Delete All Selected Orders");
+	}
+
+	CString strSql;	
+	int nResult = menu.GetSubMenu(0)->TrackPopupMenu(TPM_LEFTALIGN|TPM_RETURNCMD, point.x, point.y, this);
+	switch ( nResult)
+	{
+		//case WM_MSG_QUERY_DOWN:
+		//	OnQueryDown()
+	case ID_POPUP_DELETEALLSELECTEDROW:
+		OnPopupDeleteallselectedrow();
+		break;
+	case ID_POPUP_INSERTCOPY32775:
+		OnPopupInsertcopy32775();
+		break;
+	case WM_MSG_QUERY_PATIENT:
+		ChangeCurrentTable("Patient");
+		RunSQL(strSqlPatient, TRUE);
+		break;
+	case WM_MSG_QUERY_STUDY:
+		ChangeCurrentTable("Study");
+		RunSQL(strSqlStudy, TRUE);
+		break;
+	case WM_MSG_QUERY_SERIES:
+		ChangeCurrentTable("Series");
+		RunSQL(strSqlSeries, TRUE);
+		break;
+	case WM_MSG_QUERY_IMAGE:
+		ChangeCurrentTable("Image");
+		RunSQL(strSqlImage, TRUE);
+		break;
+	//case WM_MSG_QUERY_ORDER:
+	//	ChangeCurrentTable("MWLOrder");
+	//	RunSQL(strSqlOrder, TRUE);
+	//	break;
+	//case WM_MSG_QUERY_VIEW:
+	//	ChangeCurrentTable("MWLView");
+	//	RunSQL(strSqlView, TRUE);
+	//	break;
+	case WM_MSG_DELETE_IMAGE:
+	case WM_MSG_DELETE_SERIES:
+	case WM_MSG_DELETE_STUDY:
+	case WM_MSG_DELETE_PATIENT:
+	case WM_MSG_DELETE_ORDER:
+	case WM_MSG_DELETE_VIEW:
+		if(DeletePSSI(nResult, strKeyValueDown))
+		{
+			m_pCurrentList->DeleteItem(nRow);
+		}		
+		break;
+	case WM_MSG_OPEN_STUDY_DIR:
+		OpenStudyDir(strKeyValueDown);
+		break;
+	case WM_MSG_OPEN_IMAGE:
+		OpenImage(strKeyValueDown);
+		break;
+	case WM_MSG_DELETE_ALL_SELECTED_IMAGE:
+	case WM_MSG_DELETE_ALL_SELECTED_SERIES:
+	case WM_MSG_DELETE_ALL_SELECTED_STUDY:
+	case WM_MSG_DELETE_ALL_SELECTED_PATIENT:
+	case WM_MSG_DELETE_ALL_SELECTED_ORDER:
+	case WM_MSG_DELETE_ALL_SELECTED_VIEW:
+		DeleteAllSelectedPssi(nResult - 100);
+		break;
+	}
 }
 
 void CTinySMMSDlg::OnIsContextMenu(CListCtrl* pListCtrl, int nRow, int nCol, UINT nFlags, CPoint point)

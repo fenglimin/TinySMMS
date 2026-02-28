@@ -32,7 +32,7 @@ class CADOCommand;
 
 struct CADOFieldInfo
 {
-	char m_strName[30]; 
+	char m_strName[64]; 
 	short m_nType;
 	long m_lSize; 
 	long m_lDefinedSize;
