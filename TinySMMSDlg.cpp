@@ -18,33 +18,35 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // CAboutDlg dialog used for App About
 
-#define WM_MSG_QUERY_PATIENT					(WM_USER +100)
-#define WM_MSG_QUERY_STUDY						(WM_USER +101)
-#define WM_MSG_QUERY_SERIES						(WM_USER +102)
-#define WM_MSG_QUERY_IMAGE						(WM_USER +103)
-#define WM_MSG_QUERY_SMS						(WM_USER +104)
-#define WM_MSG_QUERY_ORDER						(WM_USER +105)
-#define WM_MSG_QUERY_VIEW						(WM_USER +106)
-#define WM_MSG_QUERY_PROCEDURESTEP				(WM_USER +107)
+#define WM_MSG_QUERY_PATIENT						(WM_USER +100)
+#define WM_MSG_QUERY_STUDY							(WM_USER +101)
+#define WM_MSG_QUERY_SERIES							(WM_USER +102)
+#define WM_MSG_QUERY_IMAGE							(WM_USER +103)
+#define WM_MSG_QUERY_SMS							(WM_USER +104)
+#define WM_MSG_QUERY_ORDER							(WM_USER +105)
+#define WM_MSG_QUERY_VIEW							(WM_USER +106)
+#define WM_MSG_QUERY_PROCEDURESTEP					(WM_USER +107)
 
-#define WM_MSG_DELETE_PATIENT					(WM_USER +200)
-#define WM_MSG_DELETE_STUDY						(WM_USER +201)
-#define WM_MSG_DELETE_SERIES					(WM_USER +202)
-#define WM_MSG_DELETE_IMAGE						(WM_USER +203)
-#define WM_MSG_DELETE_ORDER						(WM_USER +204)
-#define WM_MSG_DELETE_VIEW						(WM_USER +205)
+#define WM_MSG_DELETE_PATIENT						(WM_USER +200)
+#define WM_MSG_DELETE_STUDY							(WM_USER +201)
+#define WM_MSG_DELETE_SERIES						(WM_USER +202)
+#define WM_MSG_DELETE_IMAGE							(WM_USER +203)
+#define WM_MSG_DELETE_ORDER							(WM_USER +204)
+#define WM_MSG_DELETE_VIEW							(WM_USER +205)
+#define WM_MSG_DELETE_PROCEDURESTEP					(WM_USER +206)
 
-#define WM_MSG_DELETE_ALL_SELECTED_PATIENT		(WM_USER +300)
-#define WM_MSG_DELETE_ALL_SELECTED_STUDY		(WM_USER +301)
-#define WM_MSG_DELETE_ALL_SELECTED_SERIES		(WM_USER +302)
-#define WM_MSG_DELETE_ALL_SELECTED_IMAGE		(WM_USER +303)
-#define WM_MSG_DELETE_ALL_SELECTED_ORDER		(WM_USER +304)
-#define WM_MSG_DELETE_ALL_SELECTED_VIEW			(WM_USER +305)
+#define WM_MSG_DELETE_ALL_SELECTED_PATIENT			(WM_USER +300)
+#define WM_MSG_DELETE_ALL_SELECTED_STUDY			(WM_USER +301)
+#define WM_MSG_DELETE_ALL_SELECTED_SERIES			(WM_USER +302)
+#define WM_MSG_DELETE_ALL_SELECTED_IMAGE			(WM_USER +303)
+#define WM_MSG_DELETE_ALL_SELECTED_ORDER			(WM_USER +304)
+#define WM_MSG_DELETE_ALL_SELECTED_VIEW				(WM_USER +305)
+#define WM_MSG_DELETE_ALL_SELECTED_PROCEDURESTEP	(WM_USER +306)
 
-#define WM_MSG_VIEW_PSSI						(WM_USER +400)
+#define WM_MSG_VIEW_PSSI							(WM_USER +400)
 
-#define WM_MSG_OPEN_STUDY_DIR					(WM_USER +500)
-#define WM_MSG_OPEN_IMAGE						(WM_USER +501)
+#define WM_MSG_OPEN_STUDY_DIR						(WM_USER +500)
+#define WM_MSG_OPEN_IMAGE							(WM_USER +501)
 
 class CAboutDlg : public CDialog
 {
@@ -872,6 +874,35 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, WM_MSG_OPEN_STUDY_DIR, "Open Study Dir( StudyInstanceUID = " + strKeyValueDown + " )");
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		//AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_STUDY, strKeyValueDown)));
+	}
+	else if ( m_strCurrentTable.CompareNoCase("procedurestep") == 0 )
+	{
+		strKeyValueUp = GetTextByColumnName(pList, nRow, "StudyId");
+		strKeyValueDown = GetTextByColumnName(pList, nRow, "Id");
+		strMenuText = GetTextByColumnName(pList, nRow, "ProcedureName");
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PATIENT, "Query Patient ( ProcedureName = " + strMenuText + " )");
+		strSqlPatient.Format("SELECT * FROM Patient WHERE Id IN (SELECT PatientId FROM Study WHERE Id = '%s')", strKeyValueUp );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_STUDY, "Query Study ( ProcedureName = " + strMenuText + " )");
+		strSqlStudy.Format("SELECT * FROM Study WHERE Id = '%s'", strKeyValueUp );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SERIES, "Query Series ( ProcedureName = " + strMenuText + " )");
+		strSqlSeries.Format("SELECT * FROM Series WHERE ProcedureStepId  = '%s'", strKeyValueDown );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_IMAGE, "Query Image ( ProcedureName = " + strMenuText + " )");
+		strSqlImage.Format("SELECT * FROM CaptureImage WHERE SeriesId IN ( SELECT Id FROM Series WHERE ProcedureStepId = '%s')", strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		/*menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_ORDER, "Query Order ( AccessionNo = " + strMenuText + " )");
+		strSqlOrder.Format("SELECT * FROM MWLOrder WHERE StudyInstanceUID = '%s'", strKeyValueDown );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_VIEW, "Query View ( AccessionNo = " + strMenuText + " )");
+		strSqlView.Format("SELECT * FROM MWLView WHERE MWLOrderKey IN (SELECT MWLOrderKey FROM MWLOrder WHERE StudyInstanceUID = '%s')", strKeyValueDown );*/
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_PROCEDURESTEP, "Delete ProcedureStep ( ProcedureName = " + strMenuText + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_PROCEDURESTEP, "Delete All Selected ProcedureSteps");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		//AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_STUDY, strKeyValueDown)));
