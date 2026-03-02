@@ -348,6 +348,12 @@ BOOL CTinySMMSDlg::OnInitDialog()
 	InitSystemInfoTable();
 	LoadSystemInfo();
 
+	if (m_nProductType == PRODUCT_IV || m_nProductType == PRODUCT_CT)
+	{
+		SwitchButtonLocation(IDC_BUTTON_SMS1, IDC_BUTTON_SERIES);
+		SwitchButtonLocation(IDC_BUTTON_IMAGE, IDC_BUTTON_SERIES);
+	}
+
 	GetClientRect(&m_rectClient);
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -2474,4 +2480,24 @@ vector<CString> CTinySMMSDlg::GetCtImageDetail( const CString& strSeriesId )
 
 
 	return vecImage;
+}
+
+void CTinySMMSDlg::SwitchButtonLocation(int nId1, int nId2)
+{
+	CWnd* pBtn1 = GetDlgItem(nId1);
+	CWnd* pBtn2 = GetDlgItem(nId2);
+
+	CRect rect1, rect2;
+
+	// Get screen coordinates
+	pBtn1->GetWindowRect(&rect1);
+	pBtn2->GetWindowRect(&rect2);
+
+	// Convert to client coordinates
+	ScreenToClient(&rect1);
+	ScreenToClient(&rect2);
+
+	// Swap positions
+	pBtn1->MoveWindow(rect2);
+	pBtn2->MoveWindow(rect1);
 }
