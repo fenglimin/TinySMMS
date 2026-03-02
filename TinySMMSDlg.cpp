@@ -312,17 +312,17 @@ BOOL CTinySMMSDlg::OnInitDialog()
 		m_mapTableResult["CtProtocol"] = &m_listMwlOrder;
 		SetDlgItemText(IDC_BUTTON_WMLORDER, "Protocol");
 
-		m_mapTableResult["CtProtocolScans"] = &m_listMwlView;
-		SetDlgItemText(IDC_BUTTON_MWLVIEW, "ProtocolScan");
+		m_mapTableResult["CtScan"] = &m_listMwlView;
+		SetDlgItemText(IDC_BUTTON_MWLVIEW, "Scan");
 
-		m_mapTableResult["CtScan"] = &m_listUserProfile;
-		SetDlgItemText(IDC_BUTTON_USER_PROFILE, "Scan");
+		m_mapTableResult["CtReconstruction"] = &m_listUserProfile;
+		SetDlgItemText(IDC_BUTTON_USER_PROFILE, "Recon");
 		
-		m_mapTableResult["CtReconstruction"] = &m_listRoleProfile;
-		SetDlgItemText(IDC_BUTTON_ROLE_PROFILE, "Recon");
+		m_mapTableResult["CtScanParam"] = &m_listRoleProfile;
+		SetDlgItemText(IDC_BUTTON_ROLE_PROFILE, "ScanPara");
 
-		m_mapTableResult["SystemProfile"] = &m_listSystemProfile;
-		GetDlgItem(IDC_BUTTON_SYSTEM_PROFILE)->ShowWindow(SW_HIDE);
+		m_mapTableResult["CtReconParam"] = &m_listSystemProfile;
+		SetDlgItemText(IDC_BUTTON_SYSTEM_PROFILE, "ReconPara");
 	}
 
 	m_mapTableResult["OtherTable"] = &m_listResult;
@@ -1960,10 +1960,10 @@ void CTinySMMSDlg::OnBnClickedButtonMwlview()
 	}
 	else
 	{
-		ChangeCurrentTable("CtProtocolScans");
+		ChangeCurrentTable("CtScan");
 		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 		{
-			RunSQL("SELECT * FROM CtProtocolScans ORDER BY Id DESC", TRUE);
+			RunSQL("SELECT * FROM CtScan ORDER BY Id DESC", TRUE);
 			m_pCurrentList->Sort(0, FALSE, TRUE);
 		}
 	}	
@@ -1981,10 +1981,10 @@ void CTinySMMSDlg::OnBnClickedButtonUserProfile()
 	}
 	else
 	{
-		ChangeCurrentTable("CtScan");
+		ChangeCurrentTable("CtReconstruction");
 		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 		{
-			RunSQL("SELECT  * FROM CtScan ORDER BY Id DESC", TRUE);
+			RunSQL("SELECT * FROM CtReconstruction ORDER BY Id DESC", TRUE);
 			m_pCurrentList->Sort(0, FALSE, TRUE);
 		}
 	}	
@@ -2002,21 +2002,33 @@ void CTinySMMSDlg::OnBnClickedButtonRoleProfile()
 	}
 	else
 	{
-		ChangeCurrentTable("CtReconstruction");
+		ChangeCurrentTable("CtScanParam");
 		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 		{
-			RunSQL("SELECT  * FROM CtReconstruction ORDER BY Id DESC", TRUE);
+			RunSQL("SELECT * FROM CtScanParam ORDER BY Id DESC", TRUE);
 			m_pCurrentList->Sort(0, FALSE, TRUE);
-		}
+		}		
 	}	
 }
 
 void CTinySMMSDlg::OnBnClickedButtonSystemProfile()
 {
-	ChangeCurrentTable("SystemProfile");
-	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+	if (m_nProductType == PRODUCT_IS)
 	{
-		RunSQL("SELECT TOP 100 * FROM SystemProfile", TRUE);
+		ChangeCurrentTable("SystemProfile");
+		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+		{
+			RunSQL("SELECT TOP 100 * FROM SystemProfile", TRUE);
+		}	
+	}
+	else
+	{
+		ChangeCurrentTable("CtReconParam");
+		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
+		{
+			RunSQL("SELECT * FROM CtReconParam ORDER BY Id DESC", TRUE);
+			m_pCurrentList->Sort(0, FALSE, TRUE);
+		}		
 	}
 }
 
