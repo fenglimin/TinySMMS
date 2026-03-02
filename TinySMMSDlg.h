@@ -136,6 +136,11 @@ public:
 	void DeleteAllSelectedPssi(int nType);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	void OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UINT nFlags, CPoint point );
+	vector<CString> GetCtPssiDetail( const CString& Id );
+	CString GetCtPatientId( int nIDType, const CString& strId );
+	vector<CString> GetProcedureStepDetail( const CString& strStudyId );
+	vector<CString> GetCtSeriesDetail( const CString& strProcedureStepId );
+	vector<CString> GetCtImageDetail( const CString& strSeriesId );
 };
 
 //{{AFX_INSERT_LOCATION}}

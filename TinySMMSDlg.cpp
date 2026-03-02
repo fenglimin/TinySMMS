@@ -834,17 +834,11 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		strSqlImage.Format("SELECT * FROM CaptureImage WHERE SeriesId IN ( SELECT Id FROM Series WHERE ProcedureStepId IN ( SELECT Id FROM ProcedureStep WHERE StudyId IN ( SELECT Id FROM Study WHERE PatientId = '%s')))",strKeyValueDown );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		/*menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_ORDER, "Query Order ( PatientID = " + strMenuText + " )");
-		strSqlOrder.Format("SELECT * FROM MWLOrder WHERE PatientID = '%s'", strMenuText );
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_VIEW, "Query View ( PatientID = " + strMenuText + " )");
-		strSqlView.Format("SELECT * FROM MWLView WHERE MWLOrderKey IN (SELECT MWLOrderKey FROM MWLOrder WHERE PatientID = '%s')", strMenuText );*/
-
-		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_PATIENT, "Delete Patient ( PatientID = " + strMenuText + " )");
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_PATIENT, "Delete All Selected Patients");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		//AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_PATIENT, strKeyValueDown)));
+		AddViewPssiMenu(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_PATIENT, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("study") == 0 )
 	{
@@ -863,12 +857,6 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		strSqlImage.Format("SELECT * FROM CaptureImage WHERE SeriesId IN ( SELECT Id FROM Series WHERE ProcedureStepId IN ( SELECT Id FROM ProcedureStep WHERE StudyId = '%s'))",strKeyValueDown );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		/*menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_ORDER, "Query Order ( AccessionNo = " + strMenuText + " )");
-		strSqlOrder.Format("SELECT * FROM MWLOrder WHERE StudyInstanceUID = '%s'", strKeyValueDown );
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_VIEW, "Query View ( AccessionNo = " + strMenuText + " )");
-		strSqlView.Format("SELECT * FROM MWLView WHERE MWLOrderKey IN (SELECT MWLOrderKey FROM MWLOrder WHERE StudyInstanceUID = '%s')", strKeyValueDown );*/
-
-		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_STUDY, "Delete Study ( AccessionNo = " + strMenuText + " )");
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_STUDY, "Delete All Selected Studies");
 
@@ -876,7 +864,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, WM_MSG_OPEN_STUDY_DIR, "Open Study Dir( StudyInstanceUID = " + strKeyValueDown + " )");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		//AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_STUDY, strKeyValueDown)));
+		AddViewPssiMenu(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_STUDY, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("procedurestep") == 0 )
 	{
@@ -895,17 +883,11 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		strSqlImage.Format("SELECT * FROM CaptureImage WHERE SeriesId IN ( SELECT Id FROM Series WHERE ProcedureStepId = '%s')", strKeyValueDown );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		/*menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_ORDER, "Query Order ( AccessionNo = " + strMenuText + " )");
-		strSqlOrder.Format("SELECT * FROM MWLOrder WHERE StudyInstanceUID = '%s'", strKeyValueDown );
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_VIEW, "Query View ( AccessionNo = " + strMenuText + " )");
-		strSqlView.Format("SELECT * FROM MWLView WHERE MWLOrderKey IN (SELECT MWLOrderKey FROM MWLOrder WHERE StudyInstanceUID = '%s')", strKeyValueDown );*/
-
-		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_PROCEDURESTEP, "Delete ProcedureStep ( ProcedureName = " + strMenuText + " )");
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_PROCEDURESTEP, "Delete All Selected ProcedureSteps");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		//AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_STUDY, strKeyValueDown)));
+		AddViewPssiMenu(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_PROCEDURESTEP, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("series") == 0 )
 	{
@@ -924,17 +906,11 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		strSqlImage.Format("SELECT * FROM CaptureImage WHERE SeriesId = '%s'",strKeyValueDown );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		/*menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_ORDER, "Query Order ( BodyPart = " + strMenuText + " )");
-		strSqlOrder.Format("SELECT * FROM MWLOrder WHERE StudyInstanceUID = '%s'", strKeyValueUp );
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_VIEW, "Query View ( BodyPart = " + strMenuText + " )");
-		strSqlView.Format("SELECT * FROM MWLView WHERE Bodypart = '%s' AND MWLOrderKey IN (SELECT MWLOrderKey FROM MWLOrder WHERE StudyInstanceUID = '%s')", strMenuText, strKeyValueUp );*/
-
-		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_SERIES, "Delete Series ( BodyPart = " + strMenuText + " )");
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_SERIES, "Delete All Selected Series");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		//AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_SERIES, strKeyValueDown)));
+		AddViewPssiMenu(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_SERIES, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("captureimage") == 0 )
 	{
@@ -953,12 +929,6 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		strSqlSeries.Format("SELECT * FROM Series WHERE Id = '%s'",strKeyValueUp );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		/*menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_ORDER, "Query Order ( SOPInstanceUID = " + strMenuText + " )");
-		strSqlOrder.Format("SELECT * FROM MWLOrder WHERE StudyInstanceUID IN ( SELECT StudyInstanceUID FROM Series WHERE SeriesInstanceUID = '%s')", strKeyValueUp );
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_VIEW, "Query View ( SOPInstanceUID = " + strMenuText + " )");
-		strSqlView.Format("SELECT * FROM MWLView WHERE ImageKey = '%s'", strImageSerialNo );*/
-
-		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_IMAGE, "Delete Image ( SOPInstanceUID = " + strMenuText + " )");
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_IMAGE, "Delete All Selected Images");
 
@@ -966,7 +936,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, WM_MSG_OPEN_IMAGE, "Open Image ( SOPInstanceUID = " + strMenuText + " )");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		//AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_IMAGE, strKeyValueDown)));
+		AddViewPssiMenu(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_IMAGE, strKeyValueDown)));
 	}
 	
 
@@ -2269,4 +2239,239 @@ void CTinySMMSDlg::MoveControl(int nWidthDiff, int nHeightDiff, int nID, BOOL bM
 		rect.bottom = rect.top + nOldHeight + nHeightDiff;
 
 	pChildWnd->MoveWindow(&rect);
+}
+
+CString CTinySMMSDlg::GetCtPatientId( int nIDType, const CString& strId )
+{
+	CString strSql;
+
+	m_nViewPssiClickedType = nIDType;
+	m_strViewPssiClickeUID = strId;
+
+	if (nIDType == WM_MSG_QUERY_PATIENT)
+	{
+		return strId;	
+	}
+	else if (nIDType == WM_MSG_QUERY_STUDY)
+	{
+		strSql = "SELECT PatientId from Study where Id = '" + strId + "'";
+	}
+	else if (nIDType == WM_MSG_QUERY_PROCEDURESTEP)
+	{
+		strSql = "SELECT PatientId from Study, ProcedureStep WHERE Study.Id = ProcedureStep.StudyId AND ProcedureStep.Id = '" + strId + "'";
+	}
+	else if (nIDType == WM_MSG_QUERY_SERIES)
+	{
+		strSql = "SELECT PatientId from Study, ProcedureStep, Series WHERE Study.Id = ProcedureStep.StudyId AND ProcedureStep.Id = Series.ProcedureStepId AND Series.Id = '" + strId + "'";
+	}
+	else 
+	{
+		strSql = "SELECT PatientId from Study, ProcedureStep, Series, CaptureImage WHERE Study.Id = ProcedureStep.StudyId AND ProcedureStep.Id = Series.ProcedureStepId AND Series.Id = CaptureImage.SeriesId AND CaptureImage.Id = '" + strId + "'";
+	}
+
+	CADORecordset dbrs(m_pDBConn);
+	if(!dbrs.Open((LPCTSTR)strSql)) 
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return "";
+	}
+
+
+	CString strPatientId;
+	if(!dbrs.IsEOF())
+	{
+		BOOL B = dbrs.GetFieldValue("PatientId", strPatientId);
+	}
+	dbrs.Close();
+
+	return strPatientId;
+}
+
+vector<CString> CTinySMMSDlg::GetCtPssiDetail( const CString& Id )
+{
+	vector<CString> vecPssi;
+	CString strSql;
+
+	strSql = "SELECT DicomPatientId, NameDicomFormatName FROM Patient WHERE Id = '" + Id + "'";
+
+	CADORecordset dbrs(m_pDBConn);
+	if(!dbrs.Open((LPCTSTR)strSql)) 
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return vecPssi;
+	}
+
+
+	CString strPatientName, strPatientID;
+	if(!dbrs.IsEOF())
+	{
+		dbrs.GetFieldValue("NameDicomFormatName", strPatientName);
+		dbrs.GetFieldValue("DicomPatientId", strPatientID);
+	}
+	dbrs.Close();
+
+	vecPssi.push_back("Patient - Name : " + strPatientName + ", ID : " + strPatientID);
+
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	strSql = "SELECT Id, StudyDateTimeCombinedDateTime, AccessionNumber FROM Study WHERE PatientId = '" + Id + "'";
+	if(!dbrs.Open((LPCTSTR)strSql)) 
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return vecPssi;
+	}
+
+
+	CString strStudyId, strStudyDateTime, strAccessionNo;
+	int nScanStatus;
+	while(!dbrs.IsEOF())
+	{
+		dbrs.GetFieldValue("Id", strStudyId);
+		dbrs.GetFieldValue("StudyDateTimeCombinedDateTime", strStudyDateTime);
+		dbrs.GetFieldValue("AccessionNumber", strAccessionNo);
+
+		CString strPrefix = "    ";
+		if (m_nViewPssiClickedType == WM_MSG_QUERY_STUDY && m_strViewPssiClickeUID == strStudyId)
+			strPrefix = "  * ";
+
+		CString strLine;
+		strLine.Format("%sStudy - DateTime : %s, AccessionNo : %s", strPrefix, strStudyDateTime, strAccessionNo);
+		vecPssi.push_back(strLine);
+
+		vector<CString> vecProcedureStep = GetProcedureStepDetail(strStudyId);
+		for (int i = 0; i < vecProcedureStep.size(); i ++)
+		{
+			vecPssi.push_back(vecProcedureStep[i]);
+		}
+
+		dbrs.MoveNext();
+	}
+	dbrs.Close();
+
+	return vecPssi;	
+}
+
+vector<CString> CTinySMMSDlg::GetProcedureStepDetail( const CString& strStudyId )
+{
+	vector<CString> vecProcedureStep;
+	CString strSql;
+
+	strSql = "SELECT Id, ProcedureName, ProcedureCode FROM ProcedureStep WHERE StudyId = '" + strStudyId + "'";
+
+	CADORecordset dbrs(m_pDBConn);
+	if(!dbrs.Open((LPCTSTR)strSql)) 
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return vecProcedureStep;
+	}
+
+
+	CString strProcedureStepId, strProcedureName, strProcedureCode;
+	while(!dbrs.IsEOF())
+	{
+		dbrs.GetFieldValue("Id", strProcedureStepId);
+		dbrs.GetFieldValue("ProcedureName", strProcedureName);
+		dbrs.GetFieldValue("ProcedureCode", strProcedureCode);
+
+		CString strPrefix = "        ";
+		if (m_nViewPssiClickedType == WM_MSG_QUERY_PROCEDURESTEP && m_strViewPssiClickeUID == strProcedureStepId)
+			strPrefix = "      * ";
+
+		vecProcedureStep.push_back(strPrefix + "ProcedureStep - Name : " + strProcedureName + ", Code : " + strProcedureCode);
+
+		vector<CString> vecImage = GetCtSeriesDetail(strProcedureStepId);
+		for (int i = 0; i < vecImage.size(); i ++)
+		{
+			vecProcedureStep.push_back(vecImage[i]);
+		}
+
+		dbrs.MoveNext();
+	}
+	dbrs.Close();
+	
+	return vecProcedureStep;
+}
+
+vector<CString> CTinySMMSDlg::GetCtSeriesDetail( const CString& strProcedureStepId )
+{
+	vector<CString> vecSeries;
+	CString strSql;
+
+	strSql = "SELECT Id, BodyPartDicomName, Modality FROM Series WHERE ProcedureStepId = '" + strProcedureStepId + "'";
+
+	CADORecordset dbrs(m_pDBConn);
+	if(!dbrs.Open((LPCTSTR)strSql)) 
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return vecSeries;
+	}
+
+
+	CString strSeriesId, strBodyPart, strModality;
+	while(!dbrs.IsEOF())
+	{
+		dbrs.GetFieldValue("Id", strSeriesId);
+		dbrs.GetFieldValue("BodyPartDicomName", strBodyPart);
+		dbrs.GetFieldValue("Modality", strModality);
+
+		CString strPrefix = "            ";
+		if (m_nViewPssiClickedType == WM_MSG_QUERY_SERIES && m_strViewPssiClickeUID == strSeriesId)
+			strPrefix = "          * ";
+
+		vecSeries.push_back(strPrefix + "Series - BodyPart : " + strBodyPart + ", Modality : " + strModality);
+
+		vector<CString> vecImage = GetCtImageDetail(strSeriesId);
+		for (int i = 0; i < vecImage.size(); i ++)
+		{
+			vecSeries.push_back(vecImage[i]);
+		}
+
+		dbrs.MoveNext();
+	}
+	dbrs.Close();
+
+
+
+	return vecSeries;
+}
+
+vector<CString> CTinySMMSDlg::GetCtImageDetail( const CString& strSeriesId )
+{
+	vector<CString> vecImage;
+	CString strSql;
+
+	strSql = "SELECT Id, ImageType, SliceNumber, SliceThickness, FolderPath FROM CaptureImage WHERE SeriesId = '" + strSeriesId + "'";
+
+	CADORecordset dbrs(m_pDBConn);
+	if(!dbrs.Open((LPCTSTR)strSql)) 
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return vecImage;
+	}
+
+
+	CString strId, strImageType, strFolderPath;
+	int nSliceNumber, nSliceThickness;
+	while(!dbrs.IsEOF())
+	{
+		dbrs.GetFieldValue("Id", strId);
+		dbrs.GetFieldValue("ImageType", strImageType);
+		dbrs.GetFieldValue("SliceNumber", nSliceNumber);
+		dbrs.GetFieldValue("SliceThickness", nSliceThickness);
+		dbrs.GetFieldValue("FolderPath", strFolderPath);
+
+		CString strPrefix = "                ";
+		if (m_nViewPssiClickedType == WM_MSG_QUERY_IMAGE && m_strViewPssiClickeUID == strId)
+			strPrefix = "              * ";
+
+		CString strLine;
+		strLine.Format(strPrefix + "Image - ImageType : %s, SliceNumber : %d, SliceThickness : %d, FolderPath : %s", strImageType, nSliceNumber, nSliceThickness, strFolderPath);
+		vecImage.push_back(strLine);
+
+		dbrs.MoveNext();
+	}
+	dbrs.Close();
+
+
+
+	return vecImage;
 }
