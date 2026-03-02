@@ -909,17 +909,19 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 	}
 	else if ( m_strCurrentTable.CompareNoCase("series") == 0 )
 	{
-		strKeyValueUp = GetTextByColumnName(pList, nRow, "StudyInstanceUID");
-		strKeyValueDown = GetTextByColumnName(pList, nRow, "SeriesInstanceUID");
-		strMenuText = GetTextByColumnName(pList, nRow, "BodyPart");
+		strKeyValueUp = GetTextByColumnName(pList, nRow, "ProcedureStepId");
+		strKeyValueDown = GetTextByColumnName(pList, nRow, "Id");
+		strMenuText = GetTextByColumnName(pList, nRow, "BodyPartDicomName");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PATIENT, "Query Patient ( BodyPart = " + strMenuText + " )");
-		strSqlPatient.Format("SELECT * FROM Patient WHERE PatientGUID IN ( SELECT PatientGUID FROM Study WHERE StudyInstanceUID = '%s')", strKeyValueUp );
+		strSqlPatient.Format("SELECT * FROM Patient WHERE Id IN ( SELECT PatientId FROM Study WHERE Id In (SELECT StudyId FROM ProcedureStep WHERE Id = '%s'))", strKeyValueUp );
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_STUDY, "Query Study ( BodyPart = " + strMenuText + " )");
-		strSqlStudy.Format("SELECT * FROM Study WHERE StudyInstanceUID = '%s'",strKeyValueUp );
+		strSqlStudy.Format("SELECT * FROM Study WHERE Id In (SELECT StudyId FROM ProcedureStep WHERE Id = '%s')",strKeyValueUp );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PROCEDURESTEP, "Query ProcedureStep ( BodyPart = " + strMenuText + " )");
+		strSqlProcedureStep.Format("SELECT * FROM ProcedureStep WHERE Id = '%s'", strKeyValueUp );
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_IMAGE, "Query Image ( BodyPart = " + strMenuText + " )");
-		strSqlImage.Format("SELECT * FROM Image WHERE SeriesInstanceUID = '%s'",strKeyValueDown );
+		strSqlImage.Format("SELECT * FROM CaptureImage WHERE SeriesId = '%s'",strKeyValueDown );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		/*menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_ORDER, "Query Order ( BodyPart = " + strMenuText + " )");
@@ -932,7 +934,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_SERIES, "Delete All Selected Series");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_SERIES, strKeyValueDown)));
+		//AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_SERIES, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("image") == 0 )
 	{
