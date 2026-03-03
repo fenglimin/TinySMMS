@@ -26,6 +26,7 @@ static char THIS_FILE[] = __FILE__;
 #define WM_MSG_QUERY_ORDER							(WM_USER +105)
 #define WM_MSG_QUERY_VIEW							(WM_USER +106)
 #define WM_MSG_QUERY_PROCEDURESTEP					(WM_USER +107)
+#define WM_MSG_QUERY_SCAN							(WM_USER +108)
 
 #define WM_MSG_DELETE_PATIENT						(WM_USER +200)
 #define WM_MSG_DELETE_STUDY							(WM_USER +201)
@@ -822,7 +823,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 	menu.LoadMenu(IDR_MENU1);
 
 	CString strUpTable, strDownTable, strUpTableKeyColumn, strDownTableKeyColumn;
-	CString strSqlPatient, strSqlStudy, strSqlProcedureStep, strSqlSeries, strSqlImage;
+	CString strSqlPatient, strSqlStudy, strSqlProcedureStep, strSqlSeries, strSqlImage, strSqlCtScan;
 	CString strKeyValueDown, strKeyValueUp, strMenuText, strDeleteKey;
 	if ( m_strCurrentTable.CompareNoCase("patient") == 0 )
 	{
@@ -944,7 +945,26 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		AddViewPssiMenu(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_IMAGE, strKeyValueDown)));
 	}
-	
+	else if ( m_strCurrentTable.CompareNoCase("ctprotocol") == 0 )
+	{
+		strKeyValueDown = GetTextByColumnName(pList, nRow, "Id");
+		strMenuText = GetTextByColumnName(pList, nRow, "UniqueName");
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN, "Query CT Scan ( " + strMenuText + " )");
+		strSqlCtScan.Format("SELECT * FROM CtScan WHERE Id IN (SELECT CtScanId FROM CtProtocolScans WHERE CtProtocolId = '%s')", strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_VIEW_PSSI, GetCtCatetory(strKeyValueDown));
+
+		vector<CString> vecScanList = GetCtProtocolScanList(strKeyValueDown);
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_VIEW_PSSI, "Scan of Protocol");
+		for (int i = 0; i < vecScanList.size(); i ++)
+		{
+			menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_VIEW_PSSI, vecScanList[i]);
+		}
+	}
 
 	CString strSql;	
 	int nResult = menu.GetSubMenu(0)->TrackPopupMenu(TPM_LEFTALIGN|TPM_RETURNCMD, point.x, point.y, this);
@@ -1010,6 +1030,11 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 	case WM_MSG_DELETE_ALL_SELECTED_ORDER:
 	case WM_MSG_DELETE_ALL_SELECTED_VIEW:
 		DeleteAllSelectedPssi(nResult - 100);
+		break;
+
+	case WM_MSG_QUERY_SCAN:
+		ChangeCurrentTable("CtScan");
+		RunSQL(strSqlCtScan, TRUE);
 		break;
 	}
 }
@@ -2512,4 +2537,66 @@ void CTinySMMSDlg::SwitchButtonLocation(int nId1, int nId2)
 	// Swap positions
 	pBtn1->MoveWindow(rect2);
 	pBtn2->MoveWindow(rect1);
+}
+
+vector<CString> CTinySMMSDlg::GetCtProtocolScanList( const CString& strProtocolId )
+{
+	vector<CString> vecScanList;
+	CString strSql;
+
+	strSql = "SELECT Id, UniqueName, PatientType, ScanType FROM CtScan WHERE Id IN ( SELECT CtScanId FROM CtProtocolScans WHERE CtProtocolId = '" + strProtocolId + "')";
+
+	CADORecordset dbrs(m_pDBConn);
+	if(!dbrs.Open((LPCTSTR)strSql)) 
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return vecScanList;
+	}
+
+
+	CString strScanId, strUniqueName;
+	int nPatientType, nScanType;
+	while(!dbrs.IsEOF())
+	{
+		dbrs.GetFieldValue("Id", strScanId);
+		dbrs.GetFieldValue("UniqueName", strUniqueName);
+		dbrs.GetFieldValue("PatientType", nPatientType);
+		dbrs.GetFieldValue("ScanType", nScanType);
+
+		CString strLine;
+		strLine.Format("        Name : %s, PatientType: %d, ScanType : %d", strUniqueName, nPatientType, nScanType);
+		vecScanList.push_back(strLine);
+
+		dbrs.MoveNext();
+	}
+	dbrs.Close();
+
+	return vecScanList;	
+}
+
+CString CTinySMMSDlg::GetCtCatetory( const CString& strProtocolId )
+{
+	CString strSql;
+
+	strSql = "SELECT Category.Id, Category.Name FROM Category, CtProtocol WHERE Category.Id = CtProtocol.CategoryId AND CtProtocol.Id = '" + strProtocolId + "'";
+
+	CADORecordset dbrs(m_pDBConn);
+	if(!dbrs.Open((LPCTSTR)strSql)) 
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return "";
+	}
+
+	CString strLine;
+	CString strId, strName;
+	if(!dbrs.IsEOF())
+	{
+		dbrs.GetFieldValue("Id", strId);
+		dbrs.GetFieldValue("Name", strName);
+				
+		strLine.Format("Category - Name : %s", strName);		
+	}
+	dbrs.Close();
+	
+	return strLine;	
 }

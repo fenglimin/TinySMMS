@@ -142,6 +142,8 @@ public:
 	vector<CString> GetCtSeriesDetail( const CString& strProcedureStepId );
 	vector<CString> GetCtImageDetail( const CString& strSeriesId );
 	void SwitchButtonLocation(int nId1, int nId2);
+	vector<CString> GetCtProtocolScanList( const CString& strProtocolId );
+	CString GetCtCatetory( const CString& strProtocolId );
 };
 
 //{{AFX_INSERT_LOCATION}}
