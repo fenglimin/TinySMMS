@@ -26,7 +26,9 @@ static char THIS_FILE[] = __FILE__;
 #define WM_MSG_QUERY_ORDER							(WM_USER +105)
 #define WM_MSG_QUERY_VIEW							(WM_USER +106)
 #define WM_MSG_QUERY_PROCEDURESTEP					(WM_USER +107)
-#define WM_MSG_QUERY_SCAN							(WM_USER +108)
+#define WM_MSG_QUERY_PROTOCOL						(WM_USER +108)
+#define WM_MSG_QUERY_SCAN							(WM_USER +109)
+#define WM_MSG_QUERY_RECON							(WM_USER +110)
 
 #define WM_MSG_DELETE_PATIENT						(WM_USER +200)
 #define WM_MSG_DELETE_STUDY							(WM_USER +201)
@@ -823,7 +825,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 	menu.LoadMenu(IDR_MENU1);
 
 	CString strUpTable, strDownTable, strUpTableKeyColumn, strDownTableKeyColumn;
-	CString strSqlPatient, strSqlStudy, strSqlProcedureStep, strSqlSeries, strSqlImage, strSqlCtScan;
+	CString strSqlPatient, strSqlStudy, strSqlProcedureStep, strSqlSeries, strSqlImage, strSqlCtProtocol, strSqlCtScan, strSqlCtReconstruction;
 	CString strKeyValueDown, strKeyValueUp, strMenuText, strDeleteKey;
 	if ( m_strCurrentTable.CompareNoCase("patient") == 0 )
 	{
@@ -845,7 +847,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_PATIENT, "Delete All Selected Patients");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		AddViewPssiMenu(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_PATIENT, strKeyValueDown)));
+		AddMenuList(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_PATIENT, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("study") == 0 )
 	{
@@ -871,7 +873,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, WM_MSG_OPEN_STUDY_DIR, "Open Study Dir( StudyInstanceUID = " + strKeyValueDown + " )");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		AddViewPssiMenu(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_STUDY, strKeyValueDown)));
+		AddMenuList(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_STUDY, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("procedurestep") == 0 )
 	{
@@ -894,7 +896,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_PROCEDURESTEP, "Delete All Selected ProcedureSteps");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		AddViewPssiMenu(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_PROCEDURESTEP, strKeyValueDown)));
+		AddMenuList(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_PROCEDURESTEP, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("series") == 0 )
 	{
@@ -917,7 +919,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_SERIES, "Delete All Selected Series");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		AddViewPssiMenu(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_SERIES, strKeyValueDown)));
+		AddMenuList(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_SERIES, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("captureimage") == 0 )
 	{
@@ -943,7 +945,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, WM_MSG_OPEN_IMAGE, "Open Image ( SOPInstanceUID = " + strMenuText + " )");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		AddViewPssiMenu(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_IMAGE, strKeyValueDown)));
+		AddMenuList(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_IMAGE, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("ctprotocol") == 0 )
 	{
@@ -953,17 +955,46 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN, "Query CT Scan ( " + strMenuText + " )");
 		strSqlCtScan.Format("SELECT * FROM CtScan WHERE Id IN (SELECT CtScanId FROM CtProtocolScans WHERE CtProtocolId = '%s')", strKeyValueDown );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_RECON, "Query CT Reconstruction ( " + strMenuText + " )");
+		strSqlCtReconstruction.Format("SELECT * FROM CtReconstruction WHERE CtScanId IN (SELECT CtScanId FROM CtProtocolScans WHERE CtProtocolId = '%s')", strKeyValueDown );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_VIEW_PSSI, GetCtCatetory(strKeyValueDown));
+		m_strCtDetailId = strKeyValueDown;
+		AddMenuList(menu.GetSubMenu(0), GetCtProtolDetail(strKeyValueDown));
+	}
+	else if ( m_strCurrentTable.CompareNoCase("CtScan") == 0 )
+	{
+		strKeyValueDown = GetTextByColumnName(pList, nRow, "Id");
+		strKeyValueUp = GetCtProtocolIdFromScanId(strKeyValueDown);
+		strMenuText = GetTextByColumnName(pList, nRow, "UniqueName");
 
-		vector<CString> vecScanList = GetCtProtocolScanList(strKeyValueDown);
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_VIEW_PSSI, "Scan of Protocol");
-		for (int i = 0; i < vecScanList.size(); i ++)
-		{
-			menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_VIEW_PSSI, vecScanList[i]);
-		}
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PROTOCOL, "Query CT Protocol ( " + strMenuText + " )");
+		strSqlCtProtocol.Format("SELECT * FROM CtProtocol WHERE Id = '%s'", strKeyValueUp );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_RECON, "Query CT Reconstruction  ( " + strMenuText + " )");
+		strSqlCtReconstruction.Format("SELECT * FROM CtReconstruction WHERE CtScanId = '%s'", strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		m_strCtDetailId = strKeyValueDown;
+		AddMenuList(menu.GetSubMenu(0), GetCtProtolDetail(strKeyValueUp));
+	}
+	else if ( m_strCurrentTable.CompareNoCase("CtReconstruction") == 0 )
+	{
+		strKeyValueDown = GetTextByColumnName(pList, nRow, "Id");
+		strKeyValueUp = GetTextByColumnName(pList, nRow, "CtScanId");
+		strMenuText = GetTextByColumnName(pList, nRow, "UniqueName");
+		CString strProtocolId = GetCtProtocolIdFromScanId(strKeyValueUp);
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PROTOCOL, "Query CT Protocol ( " + strMenuText + " )");
+		strSqlCtProtocol.Format("SELECT * FROM CtProtocol WHERE Id = '%s'", strProtocolId );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN, "Query CT Scan  ( " + strMenuText + " )");
+		strSqlCtScan.Format("SELECT * FROM CtScan WHERE Id = '%s'", strKeyValueUp );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		m_strCtDetailId = strKeyValueDown;
+		AddMenuList(menu.GetSubMenu(0), GetCtProtolDetail(strProtocolId));
+				
 	}
 
 	CString strSql;	
@@ -1032,9 +1063,19 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		DeleteAllSelectedPssi(nResult - 100);
 		break;
 
+	case WM_MSG_QUERY_PROTOCOL:
+		ChangeCurrentTable("CtProtocol");
+		RunSQL(strSqlCtProtocol, TRUE);
+		break;
+
 	case WM_MSG_QUERY_SCAN:
 		ChangeCurrentTable("CtScan");
 		RunSQL(strSqlCtScan, TRUE);
+		break;
+
+	case WM_MSG_QUERY_RECON:
+		ChangeCurrentTable("CtReconstruction");
+		RunSQL(strSqlCtReconstruction, TRUE);
 		break;
 	}
 }
@@ -1075,7 +1116,7 @@ void CTinySMMSDlg::OnIsContextMenu(CListCtrl* pListCtrl, int nRow, int nCol, UIN
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_PATIENT, "Delete All Selected Patients");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_PATIENT, strKeyValueDown)));
+		AddMenuList(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_PATIENT, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("study") == 0 )
 	{
@@ -1105,7 +1146,7 @@ void CTinySMMSDlg::OnIsContextMenu(CListCtrl* pListCtrl, int nRow, int nCol, UIN
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, WM_MSG_OPEN_STUDY_DIR, "Open Study Dir( StudyInstanceUID = " + strKeyValueDown + " )");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_STUDY, strKeyValueDown)));
+		AddMenuList(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_STUDY, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("series") == 0 )
 	{
@@ -1132,7 +1173,7 @@ void CTinySMMSDlg::OnIsContextMenu(CListCtrl* pListCtrl, int nRow, int nCol, UIN
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_SERIES, "Delete All Selected Series");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_SERIES, strKeyValueDown)));
+		AddMenuList(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_SERIES, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("image") == 0 )
 	{
@@ -1163,7 +1204,7 @@ void CTinySMMSDlg::OnIsContextMenu(CListCtrl* pListCtrl, int nRow, int nCol, UIN
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, WM_MSG_OPEN_IMAGE, "Open Image ( SOPInstanceUID = " + strMenuText + " )");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_IMAGE, strKeyValueDown)));
+		AddMenuList(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_IMAGE, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("SMS") == 0 )
 	{
@@ -1171,7 +1212,7 @@ void CTinySMMSDlg::OnIsContextMenu(CListCtrl* pListCtrl, int nRow, int nCol, UIN
 		strKeyValueDown = strMenuText;
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		AddViewPssiMenu(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_SMS, strKeyValueDown)));
+		AddMenuList(menu.GetSubMenu(0), GetPssiDetail(GetPatientGUID(WM_MSG_QUERY_SMS, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("MWLOrder") == 0 )
 	{
@@ -1796,7 +1837,7 @@ vector<CString> CTinySMMSDlg::GetSeriesDetail( const CString& strStudyInstnaceUI
 	return vecSeries;
 }
 
-void CTinySMMSDlg::AddViewPssiMenu( CMenu* pMenu, vector<CString> vecMenuText )
+void CTinySMMSDlg::AddMenuList( CMenu* pMenu, vector<CString> vecMenuText )
 {
 	for (int i = 0; i < vecMenuText.size(); i ++)
 	{
@@ -2539,46 +2580,47 @@ void CTinySMMSDlg::SwitchButtonLocation(int nId1, int nId2)
 	pBtn2->MoveWindow(rect1);
 }
 
-vector<CString> CTinySMMSDlg::GetCtProtocolScanList( const CString& strProtocolId )
+vector<CString> CTinySMMSDlg::GetCtReconstructionList( CString strScanId )
 {
-	vector<CString> vecScanList;
+	vector<CString> vecReconList;
 	CString strSql;
 
-	strSql = "SELECT Id, UniqueName, PatientType, ScanType FROM CtScan WHERE Id IN ( SELECT CtScanId FROM CtProtocolScans WHERE CtProtocolId = '" + strProtocolId + "')";
+	strSql = "SELECT Id, UniqueName FROM CtReconstruction WHERE CtScanId = '" + strScanId + "'";
 
 	CADORecordset dbrs(m_pDBConn);
 	if(!dbrs.Open((LPCTSTR)strSql)) 
 	{
 		AfxMessageBox(dbrs.GetLastErrorString());
-		return vecScanList;
+		return vecReconList;
 	}
 
 
-	CString strScanId, strUniqueName;
-	int nPatientType, nScanType;
+	CString strCtReconId, strUniqueName;
 	while(!dbrs.IsEOF())
 	{
-		dbrs.GetFieldValue("Id", strScanId);
+		dbrs.GetFieldValue("Id", strCtReconId);
 		dbrs.GetFieldValue("UniqueName", strUniqueName);
-		dbrs.GetFieldValue("PatientType", nPatientType);
-		dbrs.GetFieldValue("ScanType", nScanType);
+
+		CString strPrefix = "        ";
+		if ( m_strCurrentTable.CompareNoCase("CtReconstruction") == 0 && m_strCtDetailId == strCtReconId)
+			strPrefix = "      * ";
 
 		CString strLine;
-		strLine.Format("        Name : %s, PatientType: %d, ScanType : %d", strUniqueName, nPatientType, nScanType);
-		vecScanList.push_back(strLine);
+		strLine.Format("%sRecon - Name : %s", strPrefix, strUniqueName);
+		vecReconList.push_back(strLine);
 
 		dbrs.MoveNext();
 	}
 	dbrs.Close();
 
-	return vecScanList;	
+	return vecReconList;	
 }
 
-CString CTinySMMSDlg::GetCtCatetory( const CString& strProtocolId )
+CString CTinySMMSDlg::GetCtProtocolIdFromScanId( const CString& strScanId )
 {
 	CString strSql;
 
-	strSql = "SELECT Category.Id, Category.Name FROM Category, CtProtocol WHERE Category.Id = CtProtocol.CategoryId AND CtProtocol.Id = '" + strProtocolId + "'";
+	strSql = "SELECT CtProtocolId FROM CtProtocolScans WHERE CtScanId = '" + strScanId + "'";
 
 	CADORecordset dbrs(m_pDBConn);
 	if(!dbrs.Open((LPCTSTR)strSql)) 
@@ -2587,16 +2629,79 @@ CString CTinySMMSDlg::GetCtCatetory( const CString& strProtocolId )
 		return "";
 	}
 
+	CString strId;
+	if(!dbrs.IsEOF())
+	{
+		dbrs.GetFieldValue("CtProtocolId", strId);
+	}
+	dbrs.Close();
+
+	return strId;	
+}
+
+vector<CString> CTinySMMSDlg::GetCtProtolDetail( const CString& strProtocolId )
+{
+	vector<CString> vecDetail;
+
+	CString strSql;
+	strSql = "SELECT Category.Id, Category.Name, CtProtocol.UniqueName FROM Category, CtProtocol WHERE Category.Id = CtProtocol.CategoryId AND CtProtocol.Id = '" + strProtocolId + "'";
+
+	CADORecordset dbrs(m_pDBConn);
+	if(!dbrs.Open((LPCTSTR)strSql)) 
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return vecDetail;
+	}
+
 	CString strLine;
-	CString strId, strName;
+	CString strId, strCategoryName, strProtocolName;
 	if(!dbrs.IsEOF())
 	{
 		dbrs.GetFieldValue("Id", strId);
-		dbrs.GetFieldValue("Name", strName);
-				
-		strLine.Format("Category - Name : %s", strName);		
+		dbrs.GetFieldValue("Name", strCategoryName);
+		dbrs.GetFieldValue("UniqueName", strProtocolName);
+
+		strLine.Format("Category - Name : %s", strCategoryName);
+		vecDetail.push_back(strLine);
+		strLine.Format("Protocol - Name : %s", strProtocolName);
+		vecDetail.push_back(strLine);
 	}
 	dbrs.Close();
+
+	// Load Scan info
+	strSql = "SELECT Id, UniqueName, PatientType, ScanType FROM CtScan WHERE Id IN ( SELECT CtScanId FROM CtProtocolScans WHERE CtProtocolId = '" + strProtocolId + "')";
+
+	if(!dbrs.Open((LPCTSTR)strSql)) 
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return vecDetail;
+	}
 	
-	return strLine;	
+	CString strScanId, strScanName;
+	int nPatientType, nScanType;
+	while(!dbrs.IsEOF())
+	{
+		dbrs.GetFieldValue("Id", strScanId);
+		dbrs.GetFieldValue("UniqueName", strScanName);
+		dbrs.GetFieldValue("PatientType", nPatientType);
+		dbrs.GetFieldValue("ScanType", nScanType);
+
+		CString strPrefix = "    ";
+		if ( m_strCurrentTable.CompareNoCase("CtScan") == 0 && m_strCtDetailId == strScanId)
+			strPrefix = "  * ";
+
+		strLine.Format("%sScan - Name: %s, PatientType: %d, ScanType : %d", strPrefix, strScanName, nPatientType, nScanType);
+		vecDetail.push_back(strLine);
+
+		vector<CString> vecRecon = GetCtReconstructionList(strScanId);
+		for (int i = 0; i < vecRecon.size(); i ++)
+		{
+			vecDetail.push_back(vecRecon[i]);
+		}
+
+		dbrs.MoveNext();
+	}
+	dbrs.Close();
+
+	return vecDetail;
 }

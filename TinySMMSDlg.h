@@ -31,7 +31,7 @@ public:
 	void ChangeCurrentTable(const CString& strTableName);
 	vector<CString> GetSeriesDetail( const CString& strStudyInstnaceUID );
 	vector<CString> GetImageDetail( const CString& strSeriesInstanceUID );
-	void AddViewPssiMenu( CMenu* pMenu, vector<CString> vecMenuText );
+	void AddMenuList( CMenu* pMenu, vector<CString> vecMenuText );
 	vector<CString> GetPssiDetail(const CString& strPatientGUID);
 	CString GetPatientGUID(int nIDType, const CString& strUID);
 	CString	m_strCurrentTable;
@@ -118,6 +118,7 @@ public:
 	afx_msg void OnPopupDeleteallselectedrow();
 	afx_msg void OnPopupInsertcopy32775();
 	CEdit m_editSQL;
+	CString m_strCtDetailId;
 	afx_msg void OnBnClickedButtonReload();
 	afx_msg void OnBnClickedButtonUserProfile();
 	BOOL DeletePSSI( int nType, CString strUID );
@@ -142,8 +143,9 @@ public:
 	vector<CString> GetCtSeriesDetail( const CString& strProcedureStepId );
 	vector<CString> GetCtImageDetail( const CString& strSeriesId );
 	void SwitchButtonLocation(int nId1, int nId2);
-	vector<CString> GetCtProtocolScanList( const CString& strProtocolId );
-	CString GetCtCatetory( const CString& strProtocolId );
+	vector<CString> GetCtReconstructionList( CString strScanId );
+	CString GetCtProtocolIdFromScanId( const CString& strScanId );
+	vector<CString> GetCtProtolDetail( const CString& strProtocolId );
 };
 
 //{{AFX_INSERT_LOCATION}}
