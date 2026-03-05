@@ -44,13 +44,13 @@ BOOL CInsertRowDialog::OnInitDialog()
 	// ID
 	gridColumn.Reset();
 	gridColumn.strHeaderCaption = _T("Field Name");
-	gridColumn.nWidth = 120;
+	gridColumn.nWidth = 300;
 	gridColumnsList.push_back(gridColumn);
 
 	// Exam Date
 	gridColumn.Reset();
 	gridColumn.strHeaderCaption = _T("Field Value");
-	gridColumn.nWidth = 248;
+	gridColumn.nWidth = 360;
 	gridColumnsList.push_back(gridColumn);
 
 

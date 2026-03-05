@@ -2523,7 +2523,7 @@ vector<CString> CTinySMMSDlg::GetCtImageDetail( const CString& strSeriesId )
 	vector<CString> vecImage;
 	CString strSql;
 
-	strSql = "SELECT Id, ImageType, SliceNumber, SliceThickness, FolderPath FROM CaptureImage WHERE SeriesId = '" + strSeriesId + "'";
+	strSql = "SELECT Id, ImageType, TotalSliceCount, FolderPath FROM CaptureImage WHERE SeriesId = '" + strSeriesId + "'";
 
 	CADORecordset dbrs(m_pDBConn);
 	if(!dbrs.Open((LPCTSTR)strSql)) 
@@ -2534,13 +2534,13 @@ vector<CString> CTinySMMSDlg::GetCtImageDetail( const CString& strSeriesId )
 
 
 	CString strId, strImageType, strFolderPath;
-	int nSliceNumber, nSliceThickness;
+	int nSliceCount, nSliceThickness;
 	while(!dbrs.IsEOF())
 	{
 		dbrs.GetFieldValue("Id", strId);
 		dbrs.GetFieldValue("ImageType", strImageType);
-		dbrs.GetFieldValue("SliceNumber", nSliceNumber);
-		dbrs.GetFieldValue("SliceThickness", nSliceThickness);
+		dbrs.GetFieldValue("TotalSliceCount", nSliceCount);
+		//dbrs.GetFieldValue("SliceThickness", nSliceThickness);
 		dbrs.GetFieldValue("FolderPath", strFolderPath);
 
 		CString strPrefix = "                ";
@@ -2548,7 +2548,7 @@ vector<CString> CTinySMMSDlg::GetCtImageDetail( const CString& strSeriesId )
 			strPrefix = "              * ";
 
 		CString strLine;
-		strLine.Format(strPrefix + "Image - ImageType : %s, SliceNumber : %d, SliceThickness : %d, FolderPath : %s", strImageType, nSliceNumber, nSliceThickness, strFolderPath);
+		strLine.Format(strPrefix + "Image - ImageType : %s, SliceCount : %d, FolderPath : %s", strImageType, nSliceCount, strFolderPath);
 		vecImage.push_back(strLine);
 
 		dbrs.MoveNext();

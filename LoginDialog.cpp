@@ -79,9 +79,11 @@ BOOL CLoginDialog::OnInitDialog()
 	m_strDatabase = "WGGC";
 	m_strProvider = "SQLOLEDB";
 
-	((CButton*)GetDlgItem(IDC_RADIO_IS))->SetCheck(BST_CHECKED);
+	((CButton*)GetDlgItem(IDC_RADIO_CT))->SetCheck(BST_CHECKED);
 
 	UpdateData(FALSE);
+
+	OnBnClickedRadioCt();
 	
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
