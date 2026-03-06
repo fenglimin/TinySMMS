@@ -18,6 +18,7 @@ public:
 	CString				m_strTableName;
 	CString				m_strSQL;
 	vector<CString>		m_vecItems;
+	BOOL				m_bViewOnly;
 // Dialog Data
 	enum { IDD = IDD_DIALOG_INSERT };
 

@@ -802,6 +802,18 @@ BOOL CTinySMMSDlg::OnRowLClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT 
 
 BOOL CTinySMMSDlg::OnRowLDblClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT nFlags, CPoint point)
 {
+	if (pListCtrl == &m_listSystemInfo)
+		return TRUE;
+
+	CInsertRowDialog dlg;
+
+	dlg.m_pDataList = m_pCurrentList;
+	dlg.m_nRow = nRow;
+	dlg.m_strTableName = m_strCurrentTable;
+	dlg.m_bViewOnly = TRUE;
+
+	dlg.DoModal();
+
 	return TRUE;
 }
 
@@ -1379,6 +1391,7 @@ void CTinySMMSDlg::OnPopupInsertcopy32775()
 	dlg.m_pDataList = m_pCurrentList;
 	dlg.m_nRow = m_nClickedRow;
 	dlg.m_strTableName = m_strCurrentTable;
+	dlg.m_bViewOnly = FALSE;
 	
 	if ( dlg.DoModal() == IDOK )
 	{

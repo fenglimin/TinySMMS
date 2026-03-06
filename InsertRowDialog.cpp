@@ -81,7 +81,6 @@ BOOL CInsertRowDialog::OnInitDialog()
 		nRow = m_listNewRow.AppendRow();
 		
 		pCellFormat = m_listNewRow.m_defaultListFormat.CopyFormat(levelCell);
-		pCellFormat->uTextAlign = DT_RIGHT;
 		pCellFormat->lfWeight = FW_BOLD;
 		m_listNewRow.SetCell(nRow, 0, column.strHeaderCaption, pCellFormat);
 
@@ -98,6 +97,13 @@ BOOL CInsertRowDialog::OnInitDialog()
 	}
 
 	m_listNewRow.SetUser(this);
+
+	if (m_bViewOnly)
+	{
+		GetDlgItem(IDOK)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDCANCEL)->SetWindowText("Exit");
+		SetWindowText("View Data");
+	}
 
 	return TRUE;
 }
