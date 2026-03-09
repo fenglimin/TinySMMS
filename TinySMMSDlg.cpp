@@ -813,6 +813,7 @@ BOOL CTinySMMSDlg::OnRowLDblClicked(CListCtrl* pListCtrl, int nRow, int nCol, UI
 	dlg.m_nRow = nRow;
 	dlg.m_strTableName = m_strCurrentTable;
 	dlg.m_bViewOnly = TRUE;
+	dlg.m_nProductType = m_nProductType;
 
 	dlg.DoModal();
 
@@ -821,6 +822,9 @@ BOOL CTinySMMSDlg::OnRowLDblClicked(CListCtrl* pListCtrl, int nRow, int nCol, UI
 
 BOOL CTinySMMSDlg::OnRowRClicked(CListCtrl* pListCtrl, int nRow, int nCol, UINT nFlags, CPoint point)
 {
+	if (nRow == -1)
+		return TRUE;
+
 	if (m_nProductType == PRODUCT_IS)
 		OnIsContextMenu(pListCtrl, nRow, nCol, nFlags, point);
 	else if (m_nProductType == PRODUCT_CT)
@@ -1413,6 +1417,7 @@ void CTinySMMSDlg::OnPopupInsertcopy32775()
 	dlg.m_nRow = m_nClickedRow;
 	dlg.m_strTableName = m_strCurrentTable;
 	dlg.m_bViewOnly = FALSE;
+	dlg.m_nProductType = m_nProductType;
 	
 	if ( dlg.DoModal() == IDOK )
 	{

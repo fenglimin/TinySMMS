@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "TinySMMS.h"
 #include "InsertRowDialog.h"
-
+#include "LoginDialog.h"
 
 // CInsertRowDialog dialog
 
@@ -104,6 +104,23 @@ BOOL CInsertRowDialog::OnInitDialog()
 		GetDlgItem(IDCANCEL)->SetWindowText("Exit");
 		SetWindowText("View Data");
 	}
+	else
+	{
+		if (m_nProductType == PRODUCT_CT)
+		{
+			GUID guid;
+
+			if (CoCreateGuid(&guid) == S_OK)
+			{
+				wchar_t buffer[40] = {0};
+				StringFromGUID2(guid, buffer, 40);
+
+				CString newGuid = CString(buffer);  // Return as CString
+				m_listNewRow.SetItemText(0, 1, newGuid);
+			}			
+		}
+	}
+
 
 	return TRUE;
 }
