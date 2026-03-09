@@ -29,6 +29,8 @@ static char THIS_FILE[] = __FILE__;
 #define WM_MSG_QUERY_PROTOCOL						(WM_USER +108)
 #define WM_MSG_QUERY_SCAN							(WM_USER +109)
 #define WM_MSG_QUERY_RECON							(WM_USER +110)
+#define WM_MSG_QUERY_SCAN_PRRAM						(WM_USER +111)
+#define WM_MSG_QUERY_RECON_PRRAM					(WM_USER +112)
 
 #define WM_MSG_DELETE_PATIENT						(WM_USER +200)
 #define WM_MSG_DELETE_STUDY							(WM_USER +201)
@@ -837,7 +839,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 	menu.LoadMenu(IDR_MENU1);
 
 	CString strUpTable, strDownTable, strUpTableKeyColumn, strDownTableKeyColumn;
-	CString strSqlPatient, strSqlStudy, strSqlProcedureStep, strSqlSeries, strSqlImage, strSqlCtProtocol, strSqlCtScan, strSqlCtReconstruction;
+	CString strSqlPatient, strSqlStudy, strSqlProcedureStep, strSqlSeries, strSqlImage, strSqlCtProtocol, strSqlCtScan, strSqlCtReconstruction, strSqlCtScanParam, strSqlCtReconParam;
 	CString strKeyValueDown, strKeyValueUp, strMenuText, strDeleteKey;
 	if ( m_strCurrentTable.CompareNoCase("patient") == 0 )
 	{
@@ -987,6 +989,10 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		strSqlCtReconstruction.Format("SELECT * FROM CtReconstruction WHERE CtScanId = '%s'", strKeyValueDown );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN_PRRAM, "Query Scan Params  ( " + strMenuText + " )");
+		strSqlCtScanParam.Format("SELECT * FROM CtScanParam WHERE CtScanId = '%s'", strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		m_strCtDetailId = strKeyValueDown;
 		AddMenuList(menu.GetSubMenu(0), GetCtProtolDetail(strKeyValueUp));
 	}
@@ -1002,6 +1008,10 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		strSqlCtProtocol.Format("SELECT * FROM CtProtocol WHERE Id = '%s'", strProtocolId );
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN, "Query CT Scan  ( " + strMenuText + " )");
 		strSqlCtScan.Format("SELECT * FROM CtScan WHERE Id = '%s'", strKeyValueUp );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_RECON_PRRAM, "Query CT Recon Params  ( " + strMenuText + " )");
+		strSqlCtReconParam.Format("SELECT * FROM CtReconParam WHERE CtReconstructionId = '%s'", strKeyValueDown );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		m_strCtDetailId = strKeyValueDown;
@@ -1089,6 +1099,17 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		ChangeCurrentTable("CtReconstruction");
 		RunSQL(strSqlCtReconstruction, TRUE);
 		break;
+
+	case WM_MSG_QUERY_SCAN_PRRAM:
+		ChangeCurrentTable("CtScanParam");
+		RunSQL(strSqlCtScanParam, TRUE);
+		break;
+
+	case WM_MSG_QUERY_RECON_PRRAM:
+		ChangeCurrentTable("CtReconParam");
+		RunSQL(strSqlCtReconParam, TRUE);
+		break;
+		
 	}
 }
 
