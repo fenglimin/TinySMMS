@@ -599,7 +599,7 @@ BOOL CTinySMMSDlg::RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToComman
 					nCoumnWidth = 300;
 				}
 
-				int nTextWidth = GetDC()->GetTextExtent(fieldInfo.m_strName).cx + 15;
+				int nTextWidth = GetDC()->GetTextExtent(fieldInfo.m_strName).cx + 10;
 				if ( nCoumnWidth < nTextWidth )
 					nCoumnWidth = nTextWidth;
 				
@@ -1069,10 +1069,21 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 	case WM_MSG_DELETE_PATIENT:
 	case WM_MSG_DELETE_ORDER:
 	case WM_MSG_DELETE_VIEW:
-		if(DeletePSSI(nResult, strKeyValueDown))
+		if (m_nProductType == PRODUCT_CT || m_nProductType == PRODUCT_IV)
 		{
-			m_pCurrentList->DeleteItem(nRow);
-		}		
+			if(DeletePSSIForCt(nResult, strKeyValueDown))
+			{
+				m_pCurrentList->DeleteItem(nRow);
+			}
+		}
+		else
+		{
+			if(DeletePSSI(nResult, strKeyValueDown))
+			{
+				m_pCurrentList->DeleteItem(nRow);
+			}
+		}
+				
 		break;
 	case WM_MSG_OPEN_STUDY_DIR:
 		OpenStudyDir(strKeyValueDown);
@@ -1086,7 +1097,11 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 	case WM_MSG_DELETE_ALL_SELECTED_PATIENT:
 	case WM_MSG_DELETE_ALL_SELECTED_ORDER:
 	case WM_MSG_DELETE_ALL_SELECTED_VIEW:
-		DeleteAllSelectedPssi(nResult - 100);
+		if (m_nProductType == PRODUCT_CT || m_nProductType == PRODUCT_IV)
+			DeleteAllSelectedPssiForCt(nResult - 100);
+		else
+			DeleteAllSelectedPssi(nResult - 100);
+		
 		break;
 
 	case WM_MSG_QUERY_PROTOCOL:
@@ -1346,7 +1361,7 @@ void CTinySMMSDlg::OnPopupDeleteallselectedrow()
 	{
 		int nRow = m_pCurrentList->GetNextSelectedItem(pos);
 
-		CString strSQL = _T("DELETE ") + m_strCurrentTable + GetWhereStatement(nRow);
+		CString strSQL = _T("DELETE ") + m_strCurrentTable + GetWhereStatement(nRow, m_nProductType == PRODUCT_CT || m_nProductType == PRODUCT_IV);
 		UpdateData(FALSE);
 		if ( !RunSQL(strSQL,FALSE) )
 		{
@@ -1355,7 +1370,7 @@ void CTinySMMSDlg::OnPopupDeleteallselectedrow()
 			AfxMessageBox(strMsg);
 			return;
 		}
-		
+
 		m_pCurrentList->DeleteItem(nRow);
 		pos = m_pCurrentList->GetFirstSelectedItemPosition();
 	}	
@@ -1408,6 +1423,27 @@ void CTinySMMSDlg::DeleteAllSelectedPssi(int nType)
 	}
 }
 
+void CTinySMMSDlg::DeleteAllSelectedPssiForCt(int nType)
+{
+	POSITION pos = m_pCurrentList->GetFirstSelectedItemPosition();
+	while ( pos )
+	{
+		int nRow = m_pCurrentList->GetNextSelectedItem(pos);
+		
+
+		CString strUID = GetTextByColumnName(m_pCurrentList, nRow, "Id");
+		if (DeletePSSIForCt(nType, strUID))
+		{
+			m_pCurrentList->DeleteItem(nRow);	
+		}
+		else
+		{
+			return;
+		}		
+
+		pos = m_pCurrentList->GetFirstSelectedItemPosition();
+	}
+}
 
 void CTinySMMSDlg::OnPopupInsertcopy32775()
 {
@@ -2743,4 +2779,43 @@ vector<CString> CTinySMMSDlg::GetCtProtolDetail( const CString& strProtocolId )
 	dbrs.Close();
 
 	return vecDetail;
+}
+
+BOOL CTinySMMSDlg::DeletePSSIForCt( int nType, const CString& strUid )
+{
+	vector<CString> vecSqlList;
+
+	if (nType == WM_MSG_DELETE_PATIENT)
+	{
+		vecSqlList.push_back("Delete CaptureImage from CaptureImage, Series, ProcedureStep, Study where CaptureImage.SeriesId = Series.Id and Series.ProcedureStepId = ProcedureStep.Id and ProcedureStep.StudyId = Study.Id and Study.PatientId = '" + strUid + "'");
+		vecSqlList.push_back("Delete Series from Series, ProcedureStep, Study where Series.ProcedureStepId = ProcedureStep.Id and ProcedureStep.StudyId = Study.Id and Study.PatientId = '" + strUid + "'");
+		vecSqlList.push_back("Delete ProcedureStep from ProcedureStep, Study where ProcedureStep.StudyId = Study.Id and Study.PatientId = '" + strUid + "'");
+		vecSqlList.push_back("Delete from Study where Study.PatientId = '" + strUid + "'");
+		vecSqlList.push_back("Delete from Patient where Id = '" + strUid + "'");
+	}
+	else if (nType == WM_MSG_DELETE_STUDY)
+	{
+		vecSqlList.push_back("Delete Image from Image, Series, Study where Image.SeriesInstanceUID = Series.SeriesInstanceUID and Series.StudyInstanceUID = '" + strUid + "'");
+		vecSqlList.push_back("Delete Series from Series, Study where Series.StudyInstanceUID = '" + strUid + "'");
+		vecSqlList.push_back("Delete from MWLOrder where StudyInstanceUID = '" + strUid + "'");
+		vecSqlList.push_back("Delete from Study where StudyInstanceUID = '" + strUid + "'");
+	}
+	else if (nType == WM_MSG_DELETE_PROCEDURESTEP)
+	{
+		vecSqlList.push_back("Delete Image from Image, Series, Study, MWLOrder where Image.SeriesInstanceUID = Series.SeriesInstanceUID and Series.StudyInstanceUID = Study.StudyInstanceUID and Study.SerialNo = MWLOrder.StudyKey and MWLOrder.MWLOrderKey =" + strUid);
+		vecSqlList.push_back("Delete Series from Series, Study, MWLOrder where Series.StudyInstanceUID = Study.StudyInstanceUID and Study.SerialNo = MWLOrder.StudyKey and MWLOrder.MWLOrderKey =" + strUid);
+		vecSqlList.push_back("Delete Study from Study, MWLOrder where Study.SerialNo = MWLOrder.StudyKey and MWLOrder.MWLOrderKey =" + strUid);
+		vecSqlList.push_back("Delete from MWLOrder where MWLOrderKey =" + strUid);		
+	}
+	else if (nType == WM_MSG_DELETE_SERIES)
+	{
+		vecSqlList.push_back("Delete from Image where Image.SeriesInstanceUID = '" + strUid + "'");
+		vecSqlList.push_back("Delete from Series where Series.SeriesInstanceUID = '" + strUid + "'");
+	}
+	else if (nType == WM_MSG_DELETE_IMAGE)
+	{
+		vecSqlList.push_back("Delete from Image where Image.SopInstanceUID = '" + strUid + "'");
+	}
+
+	return m_pDBConn->RunTransaction(vecSqlList);
 }

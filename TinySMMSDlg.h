@@ -146,6 +146,8 @@ public:
 	vector<CString> GetCtReconstructionList( CString strScanId );
 	CString GetCtProtocolIdFromScanId( const CString& strScanId );
 	vector<CString> GetCtProtolDetail( const CString& strProtocolId );
+	void DeleteAllSelectedPssiForCt(int nType);
+	BOOL DeletePSSIForCt( int nType, const CString& strUid );
 };
 
 //{{AFX_INSERT_LOCATION}}
