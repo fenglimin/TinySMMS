@@ -143,11 +143,11 @@ public:
 	vector<CString> GetCtSeriesDetail( const CString& strProcedureStepId );
 	vector<CString> GetCtImageDetail( const CString& strSeriesId );
 	void SwitchButtonLocation(int nId1, int nId2);
-	vector<CString> GetCtReconstructionList( CString strScanId );
-	CString GetCtProtocolIdFromScanId( const CString& strScanId );
+	vector<CString> GetReconTemplateList( CString strScanId );
 	vector<CString> GetCtProtolDetail( const CString& strProtocolId );
 	void DeleteAllSelectedPssiForCt(int nType);
 	BOOL DeletePSSIForCt( int nType, const CString& strUid );
+	CString GetProtocolTemplateIdFromScanId( const CString& strScanId );
 };
 
 //{{AFX_INSERT_LOCATION}}

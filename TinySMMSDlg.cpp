@@ -257,14 +257,12 @@ BOOL CTinySMMSDlg::OnInitDialog()
 		m_vecCommonTables.push_back("ProcedureStep");
 		m_vecCommonTables.push_back("Series");
 		m_vecCommonTables.push_back("CaptureImage");
-		m_vecCommonTables.push_back("CtProtocol");
-		m_vecCommonTables.push_back("CtProtocolScans");
-		m_vecCommonTables.push_back("CtScan");
-		m_vecCommonTables.push_back("CtReconstruction");
-		m_vecCommonTables.push_back("CtScanParam");
-		m_vecCommonTables.push_back("CtReconParam");
-		m_vecCommonTables.push_back("CtImageScanParam");
-		m_vecCommonTables.push_back("CtImageReconParam");
+		m_vecCommonTables.push_back("ProtocolTemplate");
+		m_vecCommonTables.push_back("ScanTemplate");
+		m_vecCommonTables.push_back("ReconTemplate");
+		m_vecCommonTables.push_back("ScanParamTemplate");
+		m_vecCommonTables.push_back("ReconParamTemplate");
+		m_vecCommonTables.push_back("ScanExecution");
 		m_vecCommonTables.push_back("CtParameterConfig");
 	}
 
@@ -314,19 +312,19 @@ BOOL CTinySMMSDlg::OnInitDialog()
 		m_mapTableResult["ProcedureStep"] = &m_listSms;
 		SetDlgItemText(IDC_BUTTON_SMS1, "ProcStep");
 
-		m_mapTableResult["CtProtocol"] = &m_listMwlOrder;
+		m_mapTableResult["ProtocolTemplate"] = &m_listMwlOrder;
 		SetDlgItemText(IDC_BUTTON_WMLORDER, "Protocol");
 
-		m_mapTableResult["CtScan"] = &m_listMwlView;
+		m_mapTableResult["ScanTemplate"] = &m_listMwlView;
 		SetDlgItemText(IDC_BUTTON_MWLVIEW, "Scan");
 
-		m_mapTableResult["CtReconstruction"] = &m_listUserProfile;
+		m_mapTableResult["ReconTemplate"] = &m_listUserProfile;
 		SetDlgItemText(IDC_BUTTON_USER_PROFILE, "Recon");
 		
-		m_mapTableResult["CtScanParam"] = &m_listRoleProfile;
+		m_mapTableResult["ScanParamTemplate"] = &m_listRoleProfile;
 		SetDlgItemText(IDC_BUTTON_ROLE_PROFILE, "ScanPara");
 
-		m_mapTableResult["CtReconParam"] = &m_listSystemProfile;
+		m_mapTableResult["ReconParamTemplate"] = &m_listSystemProfile;
 		SetDlgItemText(IDC_BUTTON_SYSTEM_PROFILE, "ReconPara");
 	}
 
@@ -843,7 +841,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 	menu.LoadMenu(IDR_MENU1);
 
 	CString strUpTable, strDownTable, strUpTableKeyColumn, strDownTableKeyColumn;
-	CString strSqlPatient, strSqlStudy, strSqlProcedureStep, strSqlSeries, strSqlImage, strSqlCtProtocol, strSqlCtScan, strSqlCtReconstruction, strSqlCtScanParam, strSqlCtReconParam;
+	CString strSqlPatient, strSqlStudy, strSqlProcedureStep, strSqlSeries, strSqlImage, strSqlProtocolTemplate, strSqlScanTemplate, strSqlReconTemplate, strSqlScanParamTemplate, strSqlReconParamTemplate;
 	CString strKeyValueDown, strKeyValueUp, strMenuText, strDeleteKey;
 	if ( m_strCurrentTable.CompareNoCase("patient") == 0 )
 	{
@@ -965,62 +963,61 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		AddMenuList(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_IMAGE, strKeyValueDown)));
 	}
-	else if ( m_strCurrentTable.CompareNoCase("ctprotocol") == 0 )
+	else if ( m_strCurrentTable.CompareNoCase("ProtocolTemplate") == 0 )
 	{
 		strKeyValueDown = GetTextByColumnName(pList, nRow, "Id");
 		strMenuText = GetTextByColumnName(pList, nRow, "UniqueName");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN, "Query CT Scan ( " + strMenuText + " )");
-		strSqlCtScan.Format("SELECT * FROM CtScan WHERE Id IN (SELECT CtScanId FROM CtProtocolScans WHERE CtProtocolId = '%s')", strKeyValueDown );
+		strSqlScanTemplate.Format("SELECT * FROM ScanTemplate WHERE ProtocolId = '%s'", strKeyValueDown );
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_RECON, "Query CT Reconstruction ( " + strMenuText + " )");
-		strSqlCtReconstruction.Format("SELECT * FROM CtReconstruction WHERE CtScanId IN (SELECT CtScanId FROM CtProtocolScans WHERE CtProtocolId = '%s')", strKeyValueDown );
+		strSqlReconTemplate.Format("SELECT * FROM ReconTemplate WHERE ScanTemplateId IN (SELECT Id FROM ScanTemplate WHERE ProtocolId = '%s')", strKeyValueDown );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		m_strCtDetailId = strKeyValueDown;
 		AddMenuList(menu.GetSubMenu(0), GetCtProtolDetail(strKeyValueDown));
 	}
-	else if ( m_strCurrentTable.CompareNoCase("CtScan") == 0 )
+	else if ( m_strCurrentTable.CompareNoCase("ScanTemplate") == 0 )
 	{
 		strKeyValueDown = GetTextByColumnName(pList, nRow, "Id");
-		strKeyValueUp = GetCtProtocolIdFromScanId(strKeyValueDown);
+		strKeyValueUp = GetTextByColumnName(pList, nRow, "ProtocolId");
 		strMenuText = GetTextByColumnName(pList, nRow, "UniqueName");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PROTOCOL, "Query CT Protocol ( " + strMenuText + " )");
-		strSqlCtProtocol.Format("SELECT * FROM CtProtocol WHERE Id = '%s'", strKeyValueUp );
+		strSqlProtocolTemplate.Format("SELECT * FROM ProtocolTemplate WHERE Id = '%s'", strKeyValueUp );
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_RECON, "Query CT Reconstruction  ( " + strMenuText + " )");
-		strSqlCtReconstruction.Format("SELECT * FROM CtReconstruction WHERE CtScanId = '%s'", strKeyValueDown );
+		strSqlReconTemplate.Format("SELECT * FROM ReconTemplate WHERE ScanTemplateId = '%s'", strKeyValueDown );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN_PRRAM, "Query Scan Params  ( " + strMenuText + " )");
-		strSqlCtScanParam.Format("SELECT * FROM CtScanParam WHERE CtScanId = '%s'", strKeyValueDown );
+		strSqlScanParamTemplate.Format("SELECT * FROM ScanParamTemplate WHERE ScanTemplateId = '%s'", strKeyValueDown );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		m_strCtDetailId = strKeyValueDown;
 		AddMenuList(menu.GetSubMenu(0), GetCtProtolDetail(strKeyValueUp));
 	}
-	else if ( m_strCurrentTable.CompareNoCase("CtReconstruction") == 0 )
+	else if ( m_strCurrentTable.CompareNoCase("ReconTemplate") == 0 )
 	{
 		strKeyValueDown = GetTextByColumnName(pList, nRow, "Id");
-		strKeyValueUp = GetTextByColumnName(pList, nRow, "CtScanId");
+		strKeyValueUp = GetTextByColumnName(pList, nRow, "ScanTemplateId");
 		strMenuText = GetTextByColumnName(pList, nRow, "UniqueName");
-		CString strProtocolId = GetCtProtocolIdFromScanId(strKeyValueUp);
+		CString strProtocolId = GetProtocolTemplateIdFromScanId(strKeyValueUp);
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PROTOCOL, "Query CT Protocol ( " + strMenuText + " )");
-		strSqlCtProtocol.Format("SELECT * FROM CtProtocol WHERE Id = '%s'", strProtocolId );
+		strSqlProtocolTemplate.Format("SELECT * FROM ProtocolTemplate WHERE Id = '%s'", strProtocolId );
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN, "Query CT Scan  ( " + strMenuText + " )");
-		strSqlCtScan.Format("SELECT * FROM CtScan WHERE Id = '%s'", strKeyValueUp );
+		strSqlScanTemplate.Format("SELECT * FROM ScanTemplate WHERE Id = '%s'", strKeyValueUp );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_RECON_PRRAM, "Query CT Recon Params  ( " + strMenuText + " )");
-		strSqlCtReconParam.Format("SELECT * FROM CtReconParam WHERE CtReconstructionId = '%s'", strKeyValueDown );
+		strSqlReconParamTemplate.Format("SELECT * FROM ReconParamTemplate WHERE ReconTemplateId = '%s'", strKeyValueDown );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		m_strCtDetailId = strKeyValueDown;
-		AddMenuList(menu.GetSubMenu(0), GetCtProtolDetail(strProtocolId));
-				
+		AddMenuList(menu.GetSubMenu(0), GetCtProtolDetail(strProtocolId));				
 	}
 
 	CString strSql;	
@@ -1105,28 +1102,28 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		break;
 
 	case WM_MSG_QUERY_PROTOCOL:
-		ChangeCurrentTable("CtProtocol");
-		RunSQL(strSqlCtProtocol, TRUE);
+		ChangeCurrentTable("ProtocolTemplate");
+		RunSQL(strSqlProtocolTemplate, TRUE);
 		break;
 
 	case WM_MSG_QUERY_SCAN:
-		ChangeCurrentTable("CtScan");
-		RunSQL(strSqlCtScan, TRUE);
+		ChangeCurrentTable("ScanTemplate");
+		RunSQL(strSqlScanTemplate, TRUE);
 		break;
 
 	case WM_MSG_QUERY_RECON:
-		ChangeCurrentTable("CtReconstruction");
-		RunSQL(strSqlCtReconstruction, TRUE);
+		ChangeCurrentTable("ReconTemplate");
+		RunSQL(strSqlReconTemplate, TRUE);
 		break;
 
 	case WM_MSG_QUERY_SCAN_PRRAM:
-		ChangeCurrentTable("CtScanParam");
-		RunSQL(strSqlCtScanParam, TRUE);
+		ChangeCurrentTable("ScanParamTemplate");
+		RunSQL(strSqlScanParamTemplate, TRUE);
 		break;
 
 	case WM_MSG_QUERY_RECON_PRRAM:
-		ChangeCurrentTable("CtReconParam");
-		RunSQL(strSqlCtReconParam, TRUE);
+		ChangeCurrentTable("ReconParamTemplate");
+		RunSQL(strSqlReconParamTemplate, TRUE);
 		break;
 		
 	}
@@ -2077,10 +2074,10 @@ void CTinySMMSDlg::OnBnClickedButtonWmlorder()
 	}
 	else
 	{
-		ChangeCurrentTable("CtProtocol");
+		ChangeCurrentTable("ProtocolTemplate");
 		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 		{
-			RunSQL("SELECT * FROM CtProtocol ORDER BY Id DESC", TRUE);
+			RunSQL("SELECT * FROM ProtocolTemplate ORDER BY Id DESC", TRUE);
 			m_pCurrentList->Sort(0, FALSE, TRUE);
 		}
 	}
@@ -2101,10 +2098,10 @@ void CTinySMMSDlg::OnBnClickedButtonMwlview()
 	}
 	else
 	{
-		ChangeCurrentTable("CtScan");
+		ChangeCurrentTable("ScanTemplate");
 		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 		{
-			RunSQL("SELECT * FROM CtScan ORDER BY Id DESC", TRUE);
+			RunSQL("SELECT * FROM ScanTemplate ORDER BY Id DESC", TRUE);
 			m_pCurrentList->Sort(0, FALSE, TRUE);
 		}
 	}	
@@ -2122,10 +2119,10 @@ void CTinySMMSDlg::OnBnClickedButtonUserProfile()
 	}
 	else
 	{
-		ChangeCurrentTable("CtReconstruction");
+		ChangeCurrentTable("ReconTemplate");
 		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 		{
-			RunSQL("SELECT * FROM CtReconstruction ORDER BY Id DESC", TRUE);
+			RunSQL("SELECT * FROM ReconTemplate ORDER BY Id DESC", TRUE);
 			m_pCurrentList->Sort(0, FALSE, TRUE);
 		}
 	}	
@@ -2143,10 +2140,10 @@ void CTinySMMSDlg::OnBnClickedButtonRoleProfile()
 	}
 	else
 	{
-		ChangeCurrentTable("CtScanParam");
+		ChangeCurrentTable("ScanParamTemplate");
 		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 		{
-			RunSQL("SELECT * FROM CtScanParam ORDER BY Id DESC", TRUE);
+			RunSQL("SELECT * FROM ScanParamTemplate ORDER BY Id DESC", TRUE);
 			m_pCurrentList->Sort(0, FALSE, TRUE);
 		}		
 	}	
@@ -2164,10 +2161,10 @@ void CTinySMMSDlg::OnBnClickedButtonSystemProfile()
 	}
 	else
 	{
-		ChangeCurrentTable("CtReconParam");
+		ChangeCurrentTable("ReconParamTemplate");
 		if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 		{
-			RunSQL("SELECT * FROM CtReconParam ORDER BY Id DESC", TRUE);
+			RunSQL("SELECT * FROM ReconParamTemplate ORDER BY Id DESC", TRUE);
 			m_pCurrentList->Sort(0, FALSE, TRUE);
 		}		
 	}
@@ -2655,12 +2652,12 @@ void CTinySMMSDlg::SwitchButtonLocation(int nId1, int nId2)
 	pBtn2->MoveWindow(rect1);
 }
 
-vector<CString> CTinySMMSDlg::GetCtReconstructionList( CString strScanId )
+vector<CString> CTinySMMSDlg::GetReconTemplateList( CString strScanId )
 {
 	vector<CString> vecReconList;
 	CString strSql;
 
-	strSql = "SELECT Id, UniqueName FROM CtReconstruction WHERE CtScanId = '" + strScanId + "'";
+	strSql = "SELECT Id, UniqueName FROM ReconTemplate WHERE ScanTemplateId = '" + strScanId + "'";
 
 	CADORecordset dbrs(m_pDBConn);
 	if(!dbrs.Open((LPCTSTR)strSql)) 
@@ -2677,7 +2674,7 @@ vector<CString> CTinySMMSDlg::GetCtReconstructionList( CString strScanId )
 		dbrs.GetFieldValue("UniqueName", strUniqueName);
 
 		CString strPrefix = "        ";
-		if ( m_strCurrentTable.CompareNoCase("CtReconstruction") == 0 && m_strCtDetailId == strCtReconId)
+		if ( m_strCurrentTable.CompareNoCase("ReconTemplate") == 0 && m_strCtDetailId == strCtReconId)
 			strPrefix = "      * ";
 
 		CString strLine;
@@ -2691,35 +2688,12 @@ vector<CString> CTinySMMSDlg::GetCtReconstructionList( CString strScanId )
 	return vecReconList;	
 }
 
-CString CTinySMMSDlg::GetCtProtocolIdFromScanId( const CString& strScanId )
-{
-	CString strSql;
-
-	strSql = "SELECT CtProtocolId FROM CtProtocolScans WHERE CtScanId = '" + strScanId + "'";
-
-	CADORecordset dbrs(m_pDBConn);
-	if(!dbrs.Open((LPCTSTR)strSql)) 
-	{
-		AfxMessageBox(dbrs.GetLastErrorString());
-		return "";
-	}
-
-	CString strId;
-	if(!dbrs.IsEOF())
-	{
-		dbrs.GetFieldValue("CtProtocolId", strId);
-	}
-	dbrs.Close();
-
-	return strId;	
-}
-
 vector<CString> CTinySMMSDlg::GetCtProtolDetail( const CString& strProtocolId )
 {
 	vector<CString> vecDetail;
 
 	CString strSql;
-	strSql = "SELECT Category.Id, Category.Name, CtProtocol.UniqueName FROM Category, CtProtocol WHERE Category.Id = CtProtocol.CategoryId AND CtProtocol.Id = '" + strProtocolId + "'";
+	strSql = "SELECT Category.Id, Category.Name, ProtocolTemplate.UniqueName FROM Category, ProtocolTemplate WHERE Category.Id = ProtocolTemplate.CategoryId AND ProtocolTemplate.Id = '" + strProtocolId + "'";
 
 	CADORecordset dbrs(m_pDBConn);
 	if(!dbrs.Open((LPCTSTR)strSql)) 
@@ -2744,7 +2718,7 @@ vector<CString> CTinySMMSDlg::GetCtProtolDetail( const CString& strProtocolId )
 	dbrs.Close();
 
 	// Load Scan info
-	strSql = "SELECT Id, UniqueName, PatientType, ScanType FROM CtScan WHERE Id IN ( SELECT CtScanId FROM CtProtocolScans WHERE CtProtocolId = '" + strProtocolId + "')";
+	strSql = "SELECT Id, UniqueName, PatientSize, ScanType FROM ScanTemplate WHERE ProtocolId = '" + strProtocolId + "'";
 
 	if(!dbrs.Open((LPCTSTR)strSql)) 
 	{
@@ -2753,22 +2727,22 @@ vector<CString> CTinySMMSDlg::GetCtProtolDetail( const CString& strProtocolId )
 	}
 	
 	CString strScanId, strScanName;
-	int nPatientType, nScanType;
+	int nPatientSize, nScanType;
 	while(!dbrs.IsEOF())
 	{
 		dbrs.GetFieldValue("Id", strScanId);
 		dbrs.GetFieldValue("UniqueName", strScanName);
-		dbrs.GetFieldValue("PatientType", nPatientType);
+		dbrs.GetFieldValue("PatientSize", nPatientSize);
 		dbrs.GetFieldValue("ScanType", nScanType);
 
 		CString strPrefix = "    ";
-		if ( m_strCurrentTable.CompareNoCase("CtScan") == 0 && m_strCtDetailId == strScanId)
+		if ( m_strCurrentTable.CompareNoCase("ScanTemplate") == 0 && m_strCtDetailId == strScanId)
 			strPrefix = "  * ";
 
-		strLine.Format("%sScan - Name: %s, PatientType: %d, ScanType : %d", strPrefix, strScanName, nPatientType, nScanType);
+		strLine.Format("%sScan - Name: %s, PatientSize: %d, ScanType : %d", strPrefix, strScanName, nPatientSize, nScanType);
 		vecDetail.push_back(strLine);
 
-		vector<CString> vecRecon = GetCtReconstructionList(strScanId);
+		vector<CString> vecRecon = GetReconTemplateList(strScanId);
 		for (int i = 0; i < vecRecon.size(); i ++)
 		{
 			vecDetail.push_back(vecRecon[i]);
@@ -2818,4 +2792,27 @@ BOOL CTinySMMSDlg::DeletePSSIForCt( int nType, const CString& strUid )
 	}
 
 	return m_pDBConn->RunTransaction(vecSqlList);
+}
+
+CString CTinySMMSDlg::GetProtocolTemplateIdFromScanId( const CString& strScanId )
+{
+	CString strSql;
+
+	strSql = "SELECT ProtocolId FROM ScanTemplate WHERE Id = '" + strScanId + "'";
+
+	CADORecordset dbrs(m_pDBConn);
+	if(!dbrs.Open((LPCTSTR)strSql)) 
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return "";
+	}
+
+	CString strId;
+	if(!dbrs.IsEOF())
+	{
+		dbrs.GetFieldValue("ProtocolId", strId);
+	}
+	dbrs.Close();
+
+	return strId;	
 }
