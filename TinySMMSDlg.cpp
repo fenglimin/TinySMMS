@@ -970,9 +970,9 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN, "Query CT Scan ( " + strMenuText + " )");
-		strSqlScanTemplate.Format("SELECT * FROM ScanTemplate WHERE ProtocolId = '%s'", strKeyValueDown );
+		strSqlScanTemplate.Format("SELECT * FROM ScanTemplate WHERE ProtocolTemplateId = '%s'", strKeyValueDown );
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_RECON, "Query CT Reconstruction ( " + strMenuText + " )");
-		strSqlReconTemplate.Format("SELECT * FROM ReconTemplate WHERE ScanTemplateId IN (SELECT Id FROM ScanTemplate WHERE ProtocolId = '%s')", strKeyValueDown );
+		strSqlReconTemplate.Format("SELECT * FROM ReconTemplate WHERE ScanTemplateId IN (SELECT Id FROM ScanTemplate WHERE ProtocolTemplateId = '%s')", strKeyValueDown );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		m_strCtDetailId = strKeyValueDown;
@@ -981,7 +981,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 	else if ( m_strCurrentTable.CompareNoCase("ScanTemplate") == 0 )
 	{
 		strKeyValueDown = GetTextByColumnName(pList, nRow, "Id");
-		strKeyValueUp = GetTextByColumnName(pList, nRow, "ProtocolId");
+		strKeyValueUp = GetTextByColumnName(pList, nRow, "ProtocolTemplateId");
 		strMenuText = GetTextByColumnName(pList, nRow, "UniqueName");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
@@ -2718,7 +2718,7 @@ vector<CString> CTinySMMSDlg::GetCtProtolDetail( const CString& strProtocolId )
 	dbrs.Close();
 
 	// Load Scan info
-	strSql = "SELECT Id, UniqueName, PatientSize, ScanType FROM ScanTemplate WHERE ProtocolId = '" + strProtocolId + "'";
+	strSql = "SELECT Id, UniqueName, PatientSize, ScanType FROM ScanTemplate WHERE ProtocolTemplateId = '" + strProtocolId + "'";
 
 	if(!dbrs.Open((LPCTSTR)strSql)) 
 	{
@@ -2798,7 +2798,7 @@ CString CTinySMMSDlg::GetProtocolTemplateIdFromScanId( const CString& strScanId 
 {
 	CString strSql;
 
-	strSql = "SELECT ProtocolId FROM ScanTemplate WHERE Id = '" + strScanId + "'";
+	strSql = "SELECT ProtocolTemplateId FROM ScanTemplate WHERE Id = '" + strScanId + "'";
 
 	CADORecordset dbrs(m_pDBConn);
 	if(!dbrs.Open((LPCTSTR)strSql)) 
@@ -2810,7 +2810,7 @@ CString CTinySMMSDlg::GetProtocolTemplateIdFromScanId( const CString& strScanId 
 	CString strId;
 	if(!dbrs.IsEOF())
 	{
-		dbrs.GetFieldValue("ProtocolId", strId);
+		dbrs.GetFieldValue("ProtocolTemplateId", strId);
 	}
 	dbrs.Close();
 
