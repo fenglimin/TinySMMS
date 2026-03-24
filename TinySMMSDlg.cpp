@@ -162,6 +162,16 @@ BEGIN_MESSAGE_MAP(CTinySMMSDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_SYSTEM_PROFILE, &CTinySMMSDlg::OnBnClickedButtonSystemProfile)
 	ON_BN_CLICKED(IDC_BUTTON_SYSTEM_INFO, &CTinySMMSDlg::OnBnClickedButtonSystemInfo)
 	ON_WM_SIZE()
+	ON_BN_DOUBLECLICKED(IDC_BUTTON_PATIENT, &CTinySMMSDlg::OnBnDoubleclickedButtonPatient)
+	ON_BN_DOUBLECLICKED(IDC_BUTTON_STUDY, &CTinySMMSDlg::OnBnDoubleclickedButtonStudy)
+	ON_BN_DOUBLECLICKED(IDC_BUTTON_SERIES, &CTinySMMSDlg::OnBnDoubleclickedButtonSeries)
+	ON_BN_DOUBLECLICKED(IDC_BUTTON_IMAGE, &CTinySMMSDlg::OnBnDoubleclickedButtonImage)
+	ON_BN_DOUBLECLICKED(IDC_BUTTON_SMS1, &CTinySMMSDlg::OnBnDoubleclickedButtonSms1)
+	ON_BN_DOUBLECLICKED(IDC_BUTTON_WMLORDER, &CTinySMMSDlg::OnBnDoubleclickedButtonWmlorder)
+	ON_BN_DOUBLECLICKED(IDC_BUTTON_MWLVIEW, &CTinySMMSDlg::OnBnDoubleclickedButtonMwlview)
+	ON_BN_DOUBLECLICKED(IDC_BUTTON_USER_PROFILE, &CTinySMMSDlg::OnBnDoubleclickedButtonUserProfile)
+	ON_BN_DOUBLECLICKED(IDC_BUTTON_ROLE_PROFILE, &CTinySMMSDlg::OnBnDoubleclickedButtonRoleProfile)
+	ON_BN_DOUBLECLICKED(IDC_BUTTON_SYSTEM_PROFILE, &CTinySMMSDlg::OnBnDoubleclickedButtonSystemProfile)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2846,4 +2856,118 @@ CString CTinySMMSDlg::GetProtocolTemplateIdFromScanId( const CString& strScanId 
 	dbrs.Close();
 
 	return strId;	
+}
+
+
+void CTinySMMSDlg::OnBnDoubleclickedButtonPatient()
+{
+	OnForceRefresh("Patient");
+}
+
+void CTinySMMSDlg::OnForceRefresh(const CString& strTableName)
+{
+	ChangeCurrentTable(strTableName);
+	RunSQL("SELECT * FROM [" + m_strCurrentTable + "]",TRUE);
+}
+
+void CTinySMMSDlg::OnBnDoubleclickedButtonStudy()
+{
+	OnForceRefresh("Study");
+}
+
+
+void CTinySMMSDlg::OnBnDoubleclickedButtonSeries()
+{
+	OnForceRefresh("Series");
+}
+
+
+void CTinySMMSDlg::OnBnDoubleclickedButtonImage()
+{
+	if (m_nProductType == PRODUCT_IS)
+	{
+		OnForceRefresh("Image");
+	}
+	else
+	{
+		OnForceRefresh("CaptureImage");
+	}
+}
+
+
+void CTinySMMSDlg::OnBnDoubleclickedButtonSms1()
+{
+	if (m_nProductType == PRODUCT_IS)
+	{
+		OnForceRefresh("SMS");
+	}
+	else
+	{
+		OnForceRefresh("ProcedureStep");
+	}
+}
+
+
+void CTinySMMSDlg::OnBnDoubleclickedButtonWmlorder()
+{
+	if (m_nProductType == PRODUCT_IS)
+	{
+		OnForceRefresh("MWLOrder");
+	}
+	else
+	{
+		OnForceRefresh("ProtocolTemplate");
+	}
+}
+
+
+void CTinySMMSDlg::OnBnDoubleclickedButtonMwlview()
+{
+	if (m_nProductType == PRODUCT_IS)
+	{
+		OnForceRefresh("MWLView");
+	}
+	else
+	{
+		OnForceRefresh("ScanTemplate");
+	}
+}
+
+
+void CTinySMMSDlg::OnBnDoubleclickedButtonUserProfile()
+{
+	if (m_nProductType == PRODUCT_IS)
+	{
+		OnForceRefresh("UserProfile");
+	}
+	else
+	{
+		OnForceRefresh("ReconTemplate");
+	}
+}
+
+
+void CTinySMMSDlg::OnBnDoubleclickedButtonRoleProfile()
+{
+	if (m_nProductType == PRODUCT_IS)
+	{
+		OnForceRefresh("RoleProfile");
+	}
+	else
+	{
+		OnForceRefresh("ScanParamTemplate");
+	}
+}
+
+
+void CTinySMMSDlg::OnBnDoubleclickedButtonSystemProfile()
+{
+	if (m_nProductType == PRODUCT_IS)
+	{
+		OnForceRefresh("SystemProfile");
+	}
+	else
+	{
+		OnForceRefresh("ReconParamTemplate");
+	}
 }

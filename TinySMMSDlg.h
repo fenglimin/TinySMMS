@@ -148,6 +148,17 @@ public:
 	void DeleteAllSelectedPssiForCt(int nType);
 	BOOL DeletePSSIForCt( int nType, const CString& strUid );
 	CString GetProtocolTemplateIdFromScanId( const CString& strScanId );
+	afx_msg void OnBnDoubleclickedButtonPatient();
+	void OnForceRefresh(const CString& strTableName);
+	afx_msg void OnBnDoubleclickedButtonStudy();
+	afx_msg void OnBnDoubleclickedButtonSeries();
+	afx_msg void OnBnDoubleclickedButtonImage();
+	afx_msg void OnBnDoubleclickedButtonSms1();
+	afx_msg void OnBnDoubleclickedButtonWmlorder();
+	afx_msg void OnBnDoubleclickedButtonMwlview();
+	afx_msg void OnBnDoubleclickedButtonUserProfile();
+	afx_msg void OnBnDoubleclickedButtonRoleProfile();
+	afx_msg void OnBnDoubleclickedButtonSystemProfile();
 };
 
 //{{AFX_INSERT_LOCATION}}
