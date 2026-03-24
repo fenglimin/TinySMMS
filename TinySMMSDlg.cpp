@@ -1066,6 +1066,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 	case WM_MSG_DELETE_PATIENT:
 	case WM_MSG_DELETE_ORDER:
 	case WM_MSG_DELETE_VIEW:
+	case WM_MSG_DELETE_PROCEDURESTEP:
 		if (m_nProductType == PRODUCT_CT || m_nProductType == PRODUCT_IV)
 		{
 			if(DeletePSSIForCt(nResult, strKeyValueDown))
@@ -1094,6 +1095,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 	case WM_MSG_DELETE_ALL_SELECTED_PATIENT:
 	case WM_MSG_DELETE_ALL_SELECTED_ORDER:
 	case WM_MSG_DELETE_ALL_SELECTED_VIEW:
+	case WM_MSG_DELETE_ALL_SELECTED_PROCEDURESTEP:
 		if (m_nProductType == PRODUCT_CT || m_nProductType == PRODUCT_IV)
 			DeleteAllSelectedPssiForCt(nResult - 100);
 		else
@@ -2755,40 +2757,42 @@ vector<CString> CTinySMMSDlg::GetCtProtolDetail( const CString& strProtocolId )
 	return vecDetail;
 }
 
-BOOL CTinySMMSDlg::DeletePSSIForCt( int nType, const CString& strUid )
+BOOL CTinySMMSDlg::DeletePSSIForCt( int nType, const CString& strId )
 {
 	vector<CString> vecSqlList;
 
 	if (nType == WM_MSG_DELETE_PATIENT)
 	{
-		vecSqlList.push_back("Delete CaptureImage from CaptureImage, Series, ProcedureStep, Study where CaptureImage.SeriesId = Series.Id and Series.ProcedureStepId = ProcedureStep.Id and ProcedureStep.StudyId = Study.Id and Study.PatientId = '" + strUid + "'");
-		vecSqlList.push_back("Delete Series from Series, ProcedureStep, Study where Series.ProcedureStepId = ProcedureStep.Id and ProcedureStep.StudyId = Study.Id and Study.PatientId = '" + strUid + "'");
-		vecSqlList.push_back("Delete ProcedureStep from ProcedureStep, Study where ProcedureStep.StudyId = Study.Id and Study.PatientId = '" + strUid + "'");
-		vecSqlList.push_back("Delete from Study where Study.PatientId = '" + strUid + "'");
-		vecSqlList.push_back("Delete from Patient where Id = '" + strUid + "'");
+		vecSqlList.push_back("Delete CaptureImage from CaptureImage, Series, ProcedureStep, Study where CaptureImage.SeriesId = Series.Id and Series.ProcedureStepId = ProcedureStep.Id and ProcedureStep.StudyId = Study.Id and Study.PatientId = '" + strId + "'");
+		vecSqlList.push_back("Delete Series from Series, ProcedureStep, Study where Series.ProcedureStepId = ProcedureStep.Id and ProcedureStep.StudyId = Study.Id and Study.PatientId = '" + strId + "'");
+		vecSqlList.push_back("Delete ScanExecution from ScanExecution, ProcedureStep, Study where ScanExecution.ProcedureStepId = ProcedureStep.Id and ProcedureStep.StudyId = Study.Id and Study.PatientId = '" + strId + "'");
+		vecSqlList.push_back("Delete ProcedureStep from ProcedureStep, Study where ProcedureStep.StudyId = Study.Id and Study.PatientId = '" + strId + "'");
+		vecSqlList.push_back("Delete Study where Study.PatientId = '" + strId + "'");
+		vecSqlList.push_back("Delete Patient where Id = '" + strId + "'");
 	}
 	else if (nType == WM_MSG_DELETE_STUDY)
 	{
-		vecSqlList.push_back("Delete Image from Image, Series, Study where Image.SeriesInstanceUID = Series.SeriesInstanceUID and Series.StudyInstanceUID = '" + strUid + "'");
-		vecSqlList.push_back("Delete Series from Series, Study where Series.StudyInstanceUID = '" + strUid + "'");
-		vecSqlList.push_back("Delete from MWLOrder where StudyInstanceUID = '" + strUid + "'");
-		vecSqlList.push_back("Delete from Study where StudyInstanceUID = '" + strUid + "'");
+		vecSqlList.push_back("Delete CaptureImage from CaptureImage, Series, ProcedureStep where CaptureImage.SeriesId = Series.Id and Series.ProcedureStepId = ProcedureStep.Id and ProcedureStep.StudyId = '" + strId + "'");
+		vecSqlList.push_back("Delete Series from Series, ProcedureStep where Series.ProcedureStepId = ProcedureStep.Id and ProcedureStep.StudyId = '" + strId + "'");
+		vecSqlList.push_back("Delete ScanExecution from ScanExecution, ProcedureStep where ScanExecution.ProcedureStepId = ProcedureStep.Id and ProcedureStep.StudyId = '" + strId + "'");
+		vecSqlList.push_back("Delete ProcedureStep where ProcedureStep.StudyId = '" + strId + "'");
+		vecSqlList.push_back("Delete Study where Id = '" + strId + "'");
 	}
 	else if (nType == WM_MSG_DELETE_PROCEDURESTEP)
 	{
-		vecSqlList.push_back("Delete Image from Image, Series, Study, MWLOrder where Image.SeriesInstanceUID = Series.SeriesInstanceUID and Series.StudyInstanceUID = Study.StudyInstanceUID and Study.SerialNo = MWLOrder.StudyKey and MWLOrder.MWLOrderKey =" + strUid);
-		vecSqlList.push_back("Delete Series from Series, Study, MWLOrder where Series.StudyInstanceUID = Study.StudyInstanceUID and Study.SerialNo = MWLOrder.StudyKey and MWLOrder.MWLOrderKey =" + strUid);
-		vecSqlList.push_back("Delete Study from Study, MWLOrder where Study.SerialNo = MWLOrder.StudyKey and MWLOrder.MWLOrderKey =" + strUid);
-		vecSqlList.push_back("Delete from MWLOrder where MWLOrderKey =" + strUid);		
+		vecSqlList.push_back("Delete CaptureImage from CaptureImage, Series where CaptureImage.SeriesId = Series.Id and Series.ProcedureStepId = '" + strId + "'");
+		vecSqlList.push_back("Delete Series where ProcedureStepId = '" + strId + "'");
+		vecSqlList.push_back("Delete ScanExecution where ProcedureStepId = '" + strId + "'");
+		vecSqlList.push_back("Delete ProcedureStep where Id = '" + strId + "'");	
 	}
 	else if (nType == WM_MSG_DELETE_SERIES)
 	{
-		vecSqlList.push_back("Delete from Image where Image.SeriesInstanceUID = '" + strUid + "'");
-		vecSqlList.push_back("Delete from Series where Series.SeriesInstanceUID = '" + strUid + "'");
+		vecSqlList.push_back("Delete CaptureImage where SeriesId = '" + strId + "'");
+		vecSqlList.push_back("Delete Series where Id = '" + strId + "'");
 	}
 	else if (nType == WM_MSG_DELETE_IMAGE)
 	{
-		vecSqlList.push_back("Delete from Image where Image.SopInstanceUID = '" + strUid + "'");
+		vecSqlList.push_back("Delete CaptureImage where Id = '" + strId + "'");
 	}
 
 	return m_pDBConn->RunTransaction(vecSqlList);
