@@ -1604,14 +1604,26 @@ void CTinySMMSDlg::OnBnClickedButtonClearPssi()
 
 	vector<CString> vecSqlList;
 
-	vecSqlList.push_back("Delete from Image");
-	vecSqlList.push_back("Delete from Series");
-	vecSqlList.push_back("Delete from SMS");
-	vecSqlList.push_back("Delete from MWLOrderExtendField");
-	vecSqlList.push_back("Delete from MWLView");
-	vecSqlList.push_back("Delete from MWLOrder");
-	vecSqlList.push_back("Delete from Study");
-	vecSqlList.push_back("Delete from Patient");
+	if (m_nProductType == PRODUCT_IV || m_nProductType == PRODUCT_CT)
+	{
+		vecSqlList.push_back("Delete from CaptureImage");
+		vecSqlList.push_back("Delete from Series");
+		vecSqlList.push_back("Delete from ScanExecution");
+		vecSqlList.push_back("Delete from ProcedureStep");
+		vecSqlList.push_back("Delete from Study");
+		vecSqlList.push_back("Delete from Patient");
+	}
+	else
+	{
+		vecSqlList.push_back("Delete from Image");
+		vecSqlList.push_back("Delete from Series");
+		vecSqlList.push_back("Delete from SMS");
+		vecSqlList.push_back("Delete from MWLOrderExtendField");
+		vecSqlList.push_back("Delete from MWLView");
+		vecSqlList.push_back("Delete from MWLOrder");
+		vecSqlList.push_back("Delete from Study");
+		vecSqlList.push_back("Delete from Patient");
+	}	
 
 	if (m_pDBConn->RunTransaction(vecSqlList))
 	{
