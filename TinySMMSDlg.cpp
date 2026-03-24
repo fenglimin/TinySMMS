@@ -1915,7 +1915,21 @@ void CTinySMMSDlg::AddMenuList( CMenu* pMenu, vector<CString> vecMenuText )
 {
 	for (int i = 0; i < vecMenuText.size(); i ++)
 	{
-		pMenu->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_VIEW_PSSI, vecMenuText[i]);
+		if (vecMenuText[i].Find("ProcedureStep") != -1)
+		{
+			CString strMenuText = vecMenuText[i].Left(vecMenuText[i].GetLength() - 39);
+			CString strProtocolId = vecMenuText[i].Right(38);
+			vector<CString> vecProtocol = GetCtProtolDetail( strProtocolId );
+
+			CMenu menuProtocol;
+			menuProtocol.CreatePopupMenu();
+			for (int j = 0; j < vecProtocol.size(); j ++)
+				menuProtocol.AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_VIEW_PSSI, vecProtocol[j]);
+
+			pMenu->AppendMenu(MF_POPUP, (UINT_PTR)menuProtocol.GetSafeHmenu(), 	strMenuText);
+		}
+		else
+			pMenu->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_VIEW_PSSI, vecMenuText[i]);
 	}
 	
 }
@@ -2513,7 +2527,7 @@ vector<CString> CTinySMMSDlg::GetProcedureStepDetail( const CString& strStudyId 
 	vector<CString> vecProcedureStep;
 	CString strSql;
 
-	strSql = "SELECT Id, ProcedureName, ProcedureCode FROM ProcedureStep WHERE StudyId = '" + strStudyId + "'";
+	strSql = "SELECT Id, ProcedureName, ProcedureCode, ProtocolTemplateId FROM ProcedureStep WHERE StudyId = '" + strStudyId + "'";
 
 	CADORecordset dbrs(m_pDBConn);
 	if(!dbrs.Open((LPCTSTR)strSql)) 
@@ -2523,18 +2537,19 @@ vector<CString> CTinySMMSDlg::GetProcedureStepDetail( const CString& strStudyId 
 	}
 
 
-	CString strProcedureStepId, strProcedureName, strProcedureCode;
+	CString strProcedureStepId, strProcedureName, strProcedureCode, stsrProtocolTemplateId;
 	while(!dbrs.IsEOF())
 	{
 		dbrs.GetFieldValue("Id", strProcedureStepId);
 		dbrs.GetFieldValue("ProcedureName", strProcedureName);
 		dbrs.GetFieldValue("ProcedureCode", strProcedureCode);
+		dbrs.GetFieldValue("ProtocolTemplateId", stsrProtocolTemplateId);
 
 		CString strPrefix = "        ";
 		if (m_nViewPssiClickedType == WM_MSG_QUERY_PROCEDURESTEP && m_strViewPssiClickeUID == strProcedureStepId)
 			strPrefix = "      * ";
 
-		vecProcedureStep.push_back(strPrefix + "ProcedureStep - Name : " + strProcedureName + ", Code : " + strProcedureCode);
+		vecProcedureStep.push_back(strPrefix + "ProcedureStep - Name : " + strProcedureName + ", Code : " + strProcedureCode + stsrProtocolTemplateId);
 
 		vector<CString> vecImage = GetCtSeriesDetail(strProcedureStepId);
 		for (int i = 0; i < vecImage.size(); i ++)
