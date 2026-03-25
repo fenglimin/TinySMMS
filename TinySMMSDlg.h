@@ -14,6 +14,10 @@
 
 #include "LoginDialog.h"
 #include "afxwin.h"
+
+#include <uxtheme.h>
+#pragma comment(lib, "uxtheme.lib")
+
 struct Columns
 {
 	Columns() {};
@@ -21,6 +25,70 @@ struct Columns
 	CString strColumnName;
 	CString strColumnType;
 } ;
+
+
+class CColorButton : public CButton
+{
+public:
+public:
+	COLORREF m_textColor;
+
+	CColorButton() : m_textColor(RGB(0, 0, 0)) {}
+
+	virtual void CColorButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
+	{
+		CDC dc;
+		dc.Attach(lpDrawItemStruct->hDC);
+
+		CRect rc = lpDrawItemStruct->rcItem;
+		UINT state = lpDrawItemStruct->itemState;
+
+		BOOL bPressed  = (state & ODS_SELECTED) != 0;
+		BOOL bDisabled = (state & ODS_DISABLED) != 0;
+		BOOL bFocus    = (state & ODS_FOCUS) != 0;
+
+		HTHEME hTheme = OpenThemeData(m_hWnd, L"BUTTON");
+
+		if (hTheme)
+		{
+			int partState = PBS_NORMAL;
+			if (bDisabled)
+				partState = PBS_DISABLED;
+			else if (bPressed)
+				partState = PBS_PRESSED;
+			else
+				partState = PBS_NORMAL;
+
+			DrawThemeBackground(hTheme, dc.GetSafeHdc(), BP_PUSHBUTTON, partState, &rc, NULL);
+			CloseThemeData(hTheme);
+		}
+		else
+		{
+			dc.FillSolidRect(&rc, ::GetSysColor(COLOR_BTNFACE));
+			dc.DrawEdge(&rc, bPressed ? EDGE_SUNKEN : EDGE_RAISED, BF_RECT);
+		}
+
+		CRect textRect = rc;
+		if (bPressed)
+			textRect.OffsetRect(1, 1);
+
+		CString text;
+		GetWindowText(text);
+
+		dc.SetBkMode(TRANSPARENT);
+		dc.SetTextColor(bDisabled ? ::GetSysColor(COLOR_GRAYTEXT) : m_textColor);
+		dc.DrawText(text, &textRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+
+		if (bFocus)
+		{
+			CRect focusRect = rc;
+			focusRect.DeflateRect(4, 4);
+			dc.DrawFocusRect(&focusRect);
+		}
+
+		dc.Detach();
+	}
+};
 
 class CTinySMMSDlg : public CDialog, public ICustomListUser
 {
@@ -67,6 +135,7 @@ public:
 
 	CCustomListCtrl* m_pCurrentList;
 	map<CString, CCustomListCtrl*> m_mapTableResult;
+	map<CString, CColorButton*> m_mapTableButton;
 	CString	m_strSQL;
 	int		m_nClickedRow;
 	CRect		m_rectClient;
@@ -82,6 +151,21 @@ public:
 
 // Implementation
 protected:
+	CColorButton*	m_pActiveButton;
+
+	CColorButton m_btnSysInfo;
+	CColorButton m_btnPatient;
+	CColorButton m_btnStudy;
+	CColorButton m_btnSeries;
+	CColorButton m_btnImage;
+	CColorButton m_btnSms;
+	CColorButton m_btnMwlOrder;
+	CColorButton m_btnMwlView;
+	CColorButton m_btnUserProfile;
+	CColorButton m_btnRoleProfile;
+	CColorButton m_btnSystemProfile;
+	CColorButton m_btnClearPssi;
+	CColorButton m_btnRunSql;
 
 	int	m_nProductType;
 	HICON m_hIcon;
@@ -162,6 +246,8 @@ public:
 	afx_msg void OnBnDoubleclickedButtonSystemInfo();
 	CString ReorderColumn( const CString& strTableName, const CString& strColumnOrder );
 	void AutoFitWidth();
+	void SetActiveButton(CColorButton* pButton);
+	void CreateMapForButton();
 };
 
 //{{AFX_INSERT_LOCATION}}

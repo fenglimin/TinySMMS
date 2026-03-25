@@ -53,6 +53,7 @@ static char THIS_FILE[] = __FILE__;
 #define WM_MSG_OPEN_STUDY_DIR						(WM_USER +500)
 #define WM_MSG_OPEN_IMAGE							(WM_USER +501)
 
+
 class CAboutDlg : public CDialog
 {
 public:
@@ -122,6 +123,7 @@ void CTinySMMSDlg::DoDataExchange(CDataExchange* pDX)
 	//{{AFX_DATA_MAP(CTinySMMSDlg)
 	DDX_Control(pDX, IDC_LIST_TABS, m_listTables);
 	DDX_Control(pDX, IDC_LIST_RESULT, m_listResult);
+
 	DDX_Control(pDX, IDC_LIST_PATIENT, m_listPatient);
 	DDX_Control(pDX, IDC_LIST_STUDY, m_listStudy); 
 	DDX_Control(pDX, IDC_LIST_SERIES, m_listSeries); 
@@ -132,10 +134,28 @@ void CTinySMMSDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LIST_USER_PROFILE, m_listUserProfile);
 	DDX_Control(pDX, IDC_LIST_ROLE_PROFILE, m_listRoleProfile);
 	DDX_Control(pDX, IDC_LIST_SYSTEM_PROFILE, m_listSystemProfile);
+	
+	
+	
+	DDX_Control(pDX, IDC_BUTTON_PATIENT, m_btnPatient);
+	DDX_Control(pDX, IDC_BUTTON_STUDY, m_btnStudy);
+	DDX_Control(pDX, IDC_BUTTON_SERIES, m_btnSeries);
+	DDX_Control(pDX, IDC_BUTTON_IMAGE, m_btnImage);
+	DDX_Control(pDX, IDC_BUTTON_SMS1, m_btnSms);
+	DDX_Control(pDX, IDC_BUTTON_WMLORDER, m_btnMwlOrder);
+	DDX_Control(pDX, IDC_BUTTON_MWLVIEW, m_btnMwlView);
+	DDX_Control(pDX, IDC_BUTTON_USER_PROFILE, m_btnUserProfile);
+	DDX_Control(pDX, IDC_BUTTON_ROLE_PROFILE, m_btnRoleProfile);
+	DDX_Control(pDX, IDC_BUTTON_SYSTEM_PROFILE, m_btnSystemProfile);
+
+	DDX_Control(pDX, IDC_BUTTON_SYSTEM_INFO, m_btnSysInfo);
+
 	DDX_Control(pDX, IDC_LIST_SYSTEM_INFO, m_listSystemInfo);
-	DDX_Text(pDX, IDC_EDIT_SQL, m_strSQL);
+	DDX_Control(pDX, IDC_BUTTON_CLEAR_PSSI, m_btnClearPssi);
+	DDX_Control(pDX, IDC_BUTTON_RUN, m_btnRunSql);
 	//}}AFX_DATA_MAP
 	DDX_Control(pDX, IDC_EDIT_SQL, m_editSQL);
+	DDX_Text(pDX, IDC_EDIT_SQL, m_strSQL);
 }
 
 BEGIN_MESSAGE_MAP(CTinySMMSDlg, CDialog)
@@ -361,7 +381,11 @@ BOOL CTinySMMSDlg::OnInitDialog()
 	LoadAllTables();
 	
 	InitSystemInfoTable();
+
+	m_pActiveButton = NULL;
 	LoadSystemInfo();
+	CreateMapForButton();
+	SetActiveButton(&m_btnSysInfo);
 
 	if (m_nProductType == PRODUCT_IV || m_nProductType == PRODUCT_CT)
 	{
@@ -1891,6 +1915,21 @@ void CTinySMMSDlg::ChangeCurrentTable(const CString & strTableName)
 
 	m_pCurrentList->SetFocus();
 	m_pCurrentList->SortPrevious();
+
+	for (map<CString, CColorButton*>::iterator it = m_mapTableButton.begin(); it != m_mapTableButton.end(); it++)
+	{
+		if (it->first.CompareNoCase(strTableName) == 0)
+		{
+			bFind = TRUE;
+			SetActiveButton(it->second);
+			break;
+		}
+	}
+
+	if (!bFind)
+	{
+		SetActiveButton(NULL);
+	}
 }
 
 vector<CString> CTinySMMSDlg::GetSeriesDetail( const CString& strStudyInstnaceUID )
@@ -2006,6 +2045,7 @@ vector<CString> CTinySMMSDlg::GetImageDetail( const CString& strSeriesInstanceUI
 void CTinySMMSDlg::OnButtonPatient()
 {
 	ChangeCurrentTable("Patient");
+
 	if (m_pCurrentList->GetHeaderCtrl()->GetItemCount() == 0)
 	{
 		if (m_nProductType == PRODUCT_IS)
@@ -3072,4 +3112,63 @@ void CTinySMMSDlg::AutoFitWidth()
 	m_pCurrentList->SetRedraw(TRUE);
 	m_pCurrentList->m_ctrlHeader.SetRedraw(TRUE);
 	m_pCurrentList->Invalidate(FALSE);
+}
+
+void CTinySMMSDlg::SetActiveButton( CColorButton* pButton )
+{
+	if (m_pActiveButton)
+	{
+		m_pActiveButton->m_textColor = RGB(0, 0, 0);
+		m_pActiveButton->Invalidate(FALSE);
+	}
+
+	m_pActiveButton = pButton;
+	if (m_pActiveButton)
+	{
+		m_pActiveButton->m_textColor = RGB(255, 0, 0);
+		m_pActiveButton->Invalidate(FALSE);
+	}
+}
+
+void CTinySMMSDlg::CreateMapForButton()
+{
+	// Common tables
+	if (m_nProductType != PRODUCT_OTHER) 
+	{
+		m_mapTableButton["Patient"] = &m_btnPatient;
+		m_mapTableButton["Study"]   = &m_btnStudy;
+		m_mapTableButton["Series"]  = &m_btnSeries;
+	}
+
+	// PRODUCT_IS
+	if (m_nProductType == PRODUCT_IS)
+	{
+		m_mapTableButton["Image"]         = &m_btnImage;
+		m_mapTableButton["MwlOrder"]      = &m_btnMwlOrder;
+		m_mapTableButton["MwlView"]       = &m_btnMwlView;
+		m_mapTableButton["SMS"]           = &m_btnSms;
+		m_mapTableButton["UserProfile"]   = &m_btnUserProfile;
+		m_mapTableButton["RoleProfile"]   = &m_btnRoleProfile;
+		m_mapTableButton["SystemProfile"] = &m_btnSystemProfile;
+	}
+	else if (m_nProductType == PRODUCT_IV)
+	{
+		m_mapTableButton["CaptureImage"]  = &m_btnImage;
+		m_mapTableButton["ProcedureStep"] = &m_btnSms;
+		m_mapTableButton["MwlOrder"]      = &m_btnMwlOrder;
+		m_mapTableButton["MwlView"]       = &m_btnMwlView;
+		m_mapTableButton["UserProfile"]   = &m_btnUserProfile;
+		m_mapTableButton["RoleProfile"]   = &m_btnRoleProfile;
+		m_mapTableButton["SystemProfile"] = &m_btnSystemProfile;
+	}
+	else if (m_nProductType == PRODUCT_CT)
+	{
+		m_mapTableButton["CaptureImage"]       = &m_btnImage;
+		m_mapTableButton["ProcedureStep"]      = &m_btnSms;
+		m_mapTableButton["ProtocolTemplate"]   = &m_btnMwlOrder;
+		m_mapTableButton["ScanTemplate"]       = &m_btnMwlView;
+		m_mapTableButton["ReconTemplate"]      = &m_btnUserProfile;
+		m_mapTableButton["ScanParamTemplate"]  = &m_btnRoleProfile;
+		m_mapTableButton["ReconParamTemplate"] = &m_btnSystemProfile;
+	}
 }
