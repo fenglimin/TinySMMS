@@ -159,6 +159,9 @@ public:
 	afx_msg void OnBnDoubleclickedButtonUserProfile();
 	afx_msg void OnBnDoubleclickedButtonRoleProfile();
 	afx_msg void OnBnDoubleclickedButtonSystemProfile();
+	afx_msg void OnBnDoubleclickedButtonSystemInfo();
+	CString ReorderColumn( const CString& strTableName, const CString& strColumnOrder );
+	void AutoFitWidth();
 };
 
 //{{AFX_INSERT_LOCATION}}

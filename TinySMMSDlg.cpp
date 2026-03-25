@@ -172,6 +172,7 @@ BEGIN_MESSAGE_MAP(CTinySMMSDlg, CDialog)
 	ON_BN_DOUBLECLICKED(IDC_BUTTON_USER_PROFILE, &CTinySMMSDlg::OnBnDoubleclickedButtonUserProfile)
 	ON_BN_DOUBLECLICKED(IDC_BUTTON_ROLE_PROFILE, &CTinySMMSDlg::OnBnDoubleclickedButtonRoleProfile)
 	ON_BN_DOUBLECLICKED(IDC_BUTTON_SYSTEM_PROFILE, &CTinySMMSDlg::OnBnDoubleclickedButtonSystemProfile)
+	ON_BN_DOUBLECLICKED(IDC_BUTTON_SYSTEM_INFO, &CTinySMMSDlg::OnBnDoubleclickedButtonSystemInfo)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -551,8 +552,32 @@ BOOL CTinySMMSDlg::RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToComman
 		UpdateData(FALSE);
 	}
 
+	CString strTableName;
 	if ( strSQL.Left(6).CompareNoCase("select") == 0 )
 	{
+		int nIndex = strSQL.MakeUpper().Find("FROM ");
+		if (nIndex != -1)
+		{
+			strTableName = strSQL.Right(strSQL.GetLength() - nIndex - 4);
+			strTableName.TrimLeft();
+			strTableName.Replace("\t", " ");
+			nIndex = strTableName.Find(" ");
+			if (nIndex != -1)
+			{
+				strTableName = strTableName.Left(nIndex);
+			}
+
+			if (strTableName.GetAt(0) == '[' && strTableName.GetAt(strTableName.GetLength()-1) == ']')
+			{
+				strTableName = strTableName.Mid(1, strTableName.GetLength()-2);
+			}
+			ChangeCurrentTable(strTableName);
+		}
+		else
+		{
+			AfxMessageBox("Cannot get table name from sql string");
+		}
+
 		CADORecordset dbrs(m_pDBConn);
 		if(!dbrs.Open((LPCTSTR)strSQL)) 
 		{
@@ -622,6 +647,7 @@ BOOL CTinySMMSDlg::RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToComman
 				strColumnOrder += strOrder;
 			}
 
+			strColumnOrder = ReorderColumn(strTableName, strColumnOrder);
 			m_pCurrentList->SetColumnInfo(gridColumnsList, strColumnOrder);
 			m_pCurrentList->m_ctrlHeader.SetSortArrow(0, FALSE);
 		}
@@ -635,7 +661,6 @@ BOOL CTinySMMSDlg::RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToComman
 				CString strText;
 				BOOL B = dbrs.GetFieldValue(i, strText, "");
 				m_pCurrentList->SetCell(nRow,i, strText);
-
 			}
 			dbrs.MoveNext();
 			nRow ++;
@@ -647,29 +672,8 @@ BOOL CTinySMMSDlg::RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToComman
 		strTitle.Format("TinySMMS - Total %d rows selected!", nRow);
 		SetWindowText(strTitle);
 		
-		int nIndex = strSQL.MakeUpper().Find("FROM ");
-		if (nIndex != -1)
-		{
-			CString strTableName = strSQL.Right(strSQL.GetLength() - nIndex - 4);
-			strTableName.TrimLeft();
-			strTableName.Replace("\t", " ");
-			nIndex = strTableName.Find(" ");
-			if (nIndex != -1)
-			{
-				strTableName = strTableName.Left(nIndex);
-			}
+		AutoFitWidth();		
 
-			if (strTableName.GetAt(0) == '[' && strTableName.GetAt(strTableName.GetLength()-1) == ']')
-			{
-				strTableName = strTableName.Mid(1, strTableName.GetLength()-2);
-			}
-			ChangeCurrentTable(strTableName);
-		}
-		else
-		{
-			AfxMessageBox("Cannot get table name from sql string");
-		}
-		
 		return TRUE;
 	}
 	else
@@ -2272,20 +2276,45 @@ void CTinySMMSDlg::InitSystemInfoTable()
 	nRow = m_listSystemInfo.AppendRow();
 	m_listSystemInfo.SetCell(nRow, 0, "Study Count");
 
+	if (m_nProductType == PRODUCT_IV || m_nProductType == PRODUCT_CT)
+	{
+		nRow = m_listSystemInfo.AppendRow();
+		m_listSystemInfo.SetCell(nRow, 0, "ProcedureStep Count");
+	}
+
 	nRow = m_listSystemInfo.AppendRow();
 	m_listSystemInfo.SetCell(nRow, 0, "Series Count");
 
 	nRow = m_listSystemInfo.AppendRow();
 	m_listSystemInfo.SetCell(nRow, 0, "Image Count");
 
-	nRow = m_listSystemInfo.AppendRow();
-	m_listSystemInfo.SetCell(nRow, 0, "SMS Count");
 
-	nRow = m_listSystemInfo.AppendRow();
-	m_listSystemInfo.SetCell(nRow, 0, "MWLOrder Count");
+	if (m_nProductType == PRODUCT_CT)
+	{
+		nRow = m_listSystemInfo.AppendRow();
+		m_listSystemInfo.SetCell(nRow, 0, "ScanExecution Count");
 
-	nRow = m_listSystemInfo.AppendRow();
-	m_listSystemInfo.SetCell(nRow, 0, "MWLView Count");
+		nRow = m_listSystemInfo.AppendRow();
+		m_listSystemInfo.SetCell(nRow, 0, "ProtocolTemplate Count");
+
+		nRow = m_listSystemInfo.AppendRow();
+		m_listSystemInfo.SetCell(nRow, 0, "ScanTemplate Count");
+
+		nRow = m_listSystemInfo.AppendRow();
+		m_listSystemInfo.SetCell(nRow, 0, "ReconTemplate Count");
+	}
+	else if (m_nProductType == PRODUCT_IS)
+	{
+		nRow = m_listSystemInfo.AppendRow();
+		m_listSystemInfo.SetCell(nRow, 0, "SMS Count");
+
+		nRow = m_listSystemInfo.AppendRow();
+		m_listSystemInfo.SetCell(nRow, 0, "MWLOrder Count");
+
+		nRow = m_listSystemInfo.AppendRow();
+		m_listSystemInfo.SetCell(nRow, 0, "MWLView Count");
+	}
+	
 
 	m_listSystemInfo.SetUser(this);
 }
@@ -2308,6 +2337,23 @@ void CTinySMMSDlg::LoadSystemInfo()
 		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("SMS"));
 		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("MWLOrder"));
 		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("MWLView"));
+	}
+	else
+	{
+		m_listSystemInfo.SetCell(nRow++, 1, "");
+		m_listSystemInfo.SetCell(nRow++, 1, "");
+		m_listSystemInfo.SetCell(nRow++, 1, "");
+		m_listSystemInfo.SetCell(nRow++, 1, "ImageView");
+		m_listSystemInfo.SetCell(nRow++, 1, "CT");
+		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("Patient"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("Study"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("ProcedureStep"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("Series"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("CaptureImage"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("ScanExecution"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("ProtocolTemplate"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("ScanTemplate"));
+		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("ReconTemplate"));
 	}
 }
 
@@ -2970,4 +3016,49 @@ void CTinySMMSDlg::OnBnDoubleclickedButtonSystemProfile()
 	{
 		OnForceRefresh("ReconParamTemplate");
 	}
+}
+
+
+void CTinySMMSDlg::OnBnDoubleclickedButtonSystemInfo()
+{
+	LoadSystemInfo();
+}
+
+CString CTinySMMSDlg::ReorderColumn( const CString& strTableName, const CString& strColumnOrder )
+{
+	if (strTableName.CompareNoCase("Patient") == 0)
+	{
+		return "0;6;10;1;2;3;4;5;7;8;9;" + strColumnOrder.Right(strColumnOrder.GetLength() - 23);
+	}
+
+	return strColumnOrder;
+}
+
+void CTinySMMSDlg::AutoFitWidth()
+{
+	int nFieldCount = m_pCurrentList->m_ctrlHeader.GetItemCount();
+
+	m_pCurrentList->SetRedraw(FALSE);
+	// Step 1: autosize all columns
+	int totalWidth = 0;
+	for (int i = 0; i < nFieldCount; ++i)
+	{
+		m_pCurrentList->SetColumnWidth(i, LVSCW_AUTOSIZE_USEHEADER);
+		totalWidth += m_pCurrentList->GetColumnWidth(i);
+	}
+
+	// Step 2: get client width
+	CRect rect;
+	m_pCurrentList->GetClientRect(&rect);
+	int clientWidth = rect.Width();
+
+	// Step 3: if there is extra space ¡ú expand last column
+	if (totalWidth < clientWidth)
+	{
+		int lastCol = nFieldCount - 1;
+		int lastWidth = m_pCurrentList->GetColumnWidth(lastCol);
+
+		m_pCurrentList->SetColumnWidth(lastCol, lastWidth + (clientWidth - totalWidth));
+	}
+	m_pCurrentList->SetRedraw(TRUE);
 }

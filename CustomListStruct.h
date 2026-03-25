@@ -65,6 +65,7 @@ public:
 	BOOL		bVisible;
 	int			nWidth;
 	int         nFormat;
+	int			nMaxDataWidth;
 	CString		strValidChars;
 	CellWindowType	ctrlType;
 	ColumnCompareType compareType;
@@ -77,6 +78,7 @@ public:
 	}
 	void Reset()
 	{
+		nMaxDataWidth = 0;
 		compareType = compareAsText;
 		strHeaderCaption = "";
 		bVisible = TRUE;
