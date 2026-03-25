@@ -8,7 +8,6 @@
 #define IDD_TINYSMMS_DIALOG             102
 #define IDR_MAINFRAME                   128
 #define IDD_DIALOG_LOGIN                129
-#define IDI_ICON1                       131
 #define IDB_BITMAP2                     136
 #define IDR_MENU1                       137
 #define IDD_DIALOG_INSERT               138
