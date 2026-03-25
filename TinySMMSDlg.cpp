@@ -354,6 +354,7 @@ BOOL CTinySMMSDlg::OnInitDialog()
 		it->second->SetShowSelection(TRUE);
 		it->second->m_defaultListFormat.cellType = cellTextEdit;
 
+		it->second->SetExtendedStyle(it->second->GetExtendedStyle() | LVS_EX_DOUBLEBUFFER);
 		it->second->ShowWindow(SW_HIDE);
 	}
 
@@ -3026,6 +3027,9 @@ void CTinySMMSDlg::OnBnDoubleclickedButtonSystemInfo()
 
 CString CTinySMMSDlg::ReorderColumn( const CString& strTableName, const CString& strColumnOrder )
 {
+	if (m_nProductType == PRODUCT_IS)
+		return strColumnOrder;
+
 	CString newOrder;
 	if (strTableName.CompareNoCase("Patient") == 0)
 		newOrder = "0;6;10;1;2;3;4;5;7;8;9;";
