@@ -3026,12 +3026,15 @@ void CTinySMMSDlg::OnBnDoubleclickedButtonSystemInfo()
 
 CString CTinySMMSDlg::ReorderColumn( const CString& strTableName, const CString& strColumnOrder )
 {
+	CString newOrder;
 	if (strTableName.CompareNoCase("Patient") == 0)
-	{
-		return "0;6;10;1;2;3;4;5;7;8;9;" + strColumnOrder.Right(strColumnOrder.GetLength() - 23);
-	}
+		newOrder = "0;6;10;1;2;3;4;5;7;8;9;";
+	else if (strTableName.CompareNoCase("Study") == 0)
+		newOrder = "0;1;12;14;4;2;3;5;6;7;8;9;10;11;13;";
+	else
+		return strColumnOrder;
 
-	return strColumnOrder;
+	return  newOrder + strColumnOrder.Right(strColumnOrder.GetLength() - newOrder.GetLength());
 }
 
 void CTinySMMSDlg::AutoFitWidth()
