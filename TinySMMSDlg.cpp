@@ -3046,6 +3046,8 @@ void CTinySMMSDlg::AutoFitWidth()
 	int nFieldCount = m_pCurrentList->m_ctrlHeader.GetItemCount();
 
 	m_pCurrentList->SetRedraw(FALSE);
+	m_pCurrentList->m_ctrlHeader.SetRedraw(FALSE);
+
 	// Step 1: autosize all columns
 	int totalWidth = 0;
 	for (int i = 0; i < nFieldCount; ++i)
@@ -3068,4 +3070,6 @@ void CTinySMMSDlg::AutoFitWidth()
 		m_pCurrentList->SetColumnWidth(lastCol, lastWidth + (clientWidth - totalWidth));
 	}
 	m_pCurrentList->SetRedraw(TRUE);
+	m_pCurrentList->m_ctrlHeader.SetRedraw(TRUE);
+	m_pCurrentList->Invalidate(FALSE);
 }
