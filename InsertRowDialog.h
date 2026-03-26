@@ -18,7 +18,7 @@ public:
 	CString				m_strTableName;
 	CString				m_strSQL;
 	vector<CString>		m_vecItems;
-	BOOL				m_bViewOnly;
+	BOOL				m_bForInsert;
 	int					m_nProductType;
 // Dialog Data
 	enum { IDD = IDD_DIALOG_INSERT };
@@ -33,5 +33,6 @@ protected:
 
 public:
 	virtual BOOL OnCellEditorDisplayed(CListCtrl* pListCtrl, int nRow, int nCol, CellFormat* pCellFormat, CString& strValidChars);
+	virtual BOOL OnCellTextChanged(CListCtrl* pListCtrl, int nRow, int nCol, CellFormat* pCellFormat, const CString& strOldValue, CString& strNewValue);
 	afx_msg void OnBnClickedOk();
 };

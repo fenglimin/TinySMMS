@@ -849,10 +849,21 @@ BOOL CTinySMMSDlg::OnRowLDblClicked(CListCtrl* pListCtrl, int nRow, int nCol, UI
 	dlg.m_pDataList = m_pCurrentList;
 	dlg.m_nRow = nRow;
 	dlg.m_strTableName = m_strCurrentTable;
-	dlg.m_bViewOnly = TRUE;
+	dlg.m_bForInsert = FALSE;
 	dlg.m_nProductType = m_nProductType;
 
-	dlg.DoModal();
+	if ( dlg.DoModal() == IDOK )
+	{
+		for ( int i = 0; i < (int)dlg.m_vecItems.size(); i++)
+		{
+			if (dlg.m_vecItems[i] != "NoValueChanged")
+			{
+				CString strOldValue = m_pCurrentList->GetItemText(nRow, i);
+				m_pCurrentList->SetCell(nRow, i, dlg.m_vecItems[i]);
+				OnCellTextChanged(m_pCurrentList, nRow, i, m_pCurrentList->GetCellFormat(nRow, i), strOldValue, dlg.m_vecItems[i]);
+			}
+		}
+	}
 
 	return TRUE;
 }
@@ -1490,7 +1501,7 @@ void CTinySMMSDlg::OnPopupInsertcopy32775()
 	dlg.m_pDataList = m_pCurrentList;
 	dlg.m_nRow = m_nClickedRow;
 	dlg.m_strTableName = m_strCurrentTable;
-	dlg.m_bViewOnly = FALSE;
+	dlg.m_bForInsert = TRUE;
 	dlg.m_nProductType = m_nProductType;
 	
 	if ( dlg.DoModal() == IDOK )

@@ -98,10 +98,9 @@ BOOL CInsertRowDialog::OnInitDialog()
 
 	m_listNewRow.SetUser(this);
 
-	if (m_bViewOnly)
+	if (!m_bForInsert)
 	{
-		GetDlgItem(IDOK)->ShowWindow(SW_HIDE);
-		GetDlgItem(IDCANCEL)->SetWindowText("Exit");
+		GetDlgItem(IDOK)->SetWindowText("Update");
 		SetWindowText("View Data");
 	}
 	else
@@ -144,42 +143,61 @@ void CInsertRowDialog::OnBnClickedOk()
 
 	CString strFields, strValues;
 
-	for ( int i = 0; i < nCount; i++)
+	if (m_bForInsert)
 	{
-		CString strField = m_listNewRow.GetItemText(i,0);
-		CString strValue = m_listNewRow.GetItemText(i,1);
-
-		m_vecItems.push_back(strValue);
-
-		if ( strValue.IsEmpty() )
-			continue;
-		strValue.Replace("'", "''");
-
-		strFields += strField + _T(", ");
-
-		CustomColumn column = m_pDataList->m_ctrlHeader.m_gridColumnsList[i];
-		if ( column.compareType != compareAsNumber )
+		for ( int i = 0; i < nCount; i++)
 		{
-			strValues += _T("'") + strValue + _T("', ");
+			CString strField = m_listNewRow.GetItemText(i,0);
+			CString strValue = m_listNewRow.GetItemText(i,1);
+
+			m_vecItems.push_back(strValue);
+
+			if ( strValue.IsEmpty() )
+				continue;
+			strValue.Replace("'", "''");
+
+			strFields += strField + _T(", ");
+
+			CustomColumn column = m_pDataList->m_ctrlHeader.m_gridColumnsList[i];
+			if ( column.compareType != compareAsNumber )
+			{
+				strValues += _T("'") + strValue + _T("', ");
+			}
+			else
+			{
+				strValues += strValue + _T(", ");
+			}
 		}
-		else
+
+
+		if ( !strFields.IsEmpty())
 		{
-			strValues += strValue + _T(", ");
+			strFields = _T(" ( ") + strFields.Left(strFields.GetLength()-2) + _T(" ) ");
+		}
+
+		if ( !strValues.IsEmpty())
+		{
+			strValues = _T(" VALUES ( ") + strValues.Left(strValues.GetLength()-2) + _T(" ) ");
+		}
+
+		m_strSQL = _T("INSERT INTO ") + m_strTableName + strFields + strValues;	
+	}
+	else
+	{
+		for ( int i = 0; i < nCount; i++)
+		{
+			CellFormat* pCellFormat = m_listNewRow.GetCellFormat(i, 1);
+			if (pCellFormat->bCellTextChange)
+				m_vecItems.push_back(m_listNewRow.GetItemText(i,1));
+			else
+				m_vecItems.push_back("NoValueChanged");
 		}
 	}
-
-
-	if ( !strFields.IsEmpty())
-	{
-		strFields = _T(" ( ") + strFields.Left(strFields.GetLength()-2) + _T(" ) ");
-	}
-
-	if ( !strValues.IsEmpty())
-	{
-		strValues = _T(" VALUES ( ") + strValues.Left(strValues.GetLength()-2) + _T(" ) ");
-	}
-
-	m_strSQL = _T("INSERT INTO ") + m_strTableName + strFields + strValues;
 
 	CDialog::OnOK();
+}
+
+BOOL CInsertRowDialog::OnCellTextChanged( CListCtrl* pListCtrl, int nRow, int nCol, CellFormat* pCellFormat, const CString& strOldValue, CString& strNewValue )
+{
+	return TRUE;
 }
