@@ -31,6 +31,7 @@ static char THIS_FILE[] = __FILE__;
 #define WM_MSG_QUERY_RECON							(WM_USER +110)
 #define WM_MSG_QUERY_SCAN_PRRAM						(WM_USER +111)
 #define WM_MSG_QUERY_RECON_PRRAM					(WM_USER +112)
+#define WM_MSG_QUERY_SCAN_EXECUTION					(WM_USER +113)
 
 #define WM_MSG_DELETE_PATIENT						(WM_USER +200)
 #define WM_MSG_DELETE_STUDY							(WM_USER +201)
@@ -891,7 +892,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 	menu.LoadMenu(IDR_MENU1);
 
 	CString strUpTable, strDownTable, strUpTableKeyColumn, strDownTableKeyColumn;
-	CString strSqlPatient, strSqlStudy, strSqlProcedureStep, strSqlSeries, strSqlImage, strSqlProtocolTemplate, strSqlScanTemplate, strSqlReconTemplate, strSqlScanParamTemplate, strSqlReconParamTemplate;
+	CString strSqlPatient, strSqlStudy, strSqlProcedureStep, strSqlSeries, strSqlImage, strSqlProtocolTemplate, strSqlScanTemplate, strSqlReconTemplate, strSqlScanParamTemplate, strSqlReconParamTemplate, strSqlScanExecution;
 	CString strKeyValueDown, strKeyValueUp, strMenuText, strDeleteKey;
 	if ( m_strCurrentTable.CompareNoCase("patient") == 0 )
 	{
@@ -908,6 +909,10 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_IMAGE, "Query Image ( PatientID = " + strMenuText + " )");
 		strSqlImage.Format("SELECT * FROM CaptureImage WHERE SeriesId IN ( SELECT Id FROM Series WHERE ProcedureStepId IN ( SELECT Id FROM ProcedureStep WHERE StudyId IN ( SELECT Id FROM Study WHERE PatientId = '%s')))",strKeyValueDown );
 
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN_EXECUTION, "Query Scan Execution ( PatientID = " + strMenuText + " )");
+		strSqlScanExecution.Format("SELECT * FROM ScanExecution WHERE ProcedureStepId IN ( SELECT Id FROM ProcedureStep WHERE StudyId IN ( SELECT Id FROM Study WHERE PatientId = '%s'))",strKeyValueDown );
+		
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_PATIENT, "Delete Patient ( PatientID = " + strMenuText + " )");
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_PATIENT, "Delete All Selected Patients");
@@ -930,6 +935,10 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		strSqlSeries.Format("SELECT * FROM Series WHERE ProcedureStepId IN ( SELECT Id FROM ProcedureStep WHERE StudyId = '%s')", strKeyValueDown );
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_IMAGE, "Query Image ( AccessionNo = " + strMenuText + " )");
 		strSqlImage.Format("SELECT * FROM CaptureImage WHERE SeriesId IN ( SELECT Id FROM Series WHERE ProcedureStepId IN ( SELECT Id FROM ProcedureStep WHERE StudyId = '%s'))",strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN_EXECUTION, "Query Scan Execution ( AccessionNo = " + strMenuText + " )");
+		strSqlScanExecution.Format("SELECT * FROM ScanExecution WHERE ProcedureStepId IN ( SELECT Id FROM ProcedureStep WHERE StudyId = '%s')", strKeyValueDown );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_STUDY, "Delete Study ( AccessionNo = " + strMenuText + " )");
@@ -958,6 +967,10 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		strSqlImage.Format("SELECT * FROM CaptureImage WHERE SeriesId IN ( SELECT Id FROM Series WHERE ProcedureStepId = '%s')", strKeyValueDown );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN_EXECUTION, "Query Scan Execution ( ProcedureName = " + strMenuText + " )");
+		strSqlScanExecution.Format("SELECT * FROM ScanExecution WHERE ProcedureStepId = '%s'", strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_PROCEDURESTEP, "Delete ProcedureStep ( ProcedureName = " + strMenuText + " )");
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_PROCEDURESTEP, "Delete All Selected ProcedureSteps");
 
@@ -969,6 +982,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		strKeyValueUp = GetTextByColumnName(pList, nRow, "ProcedureStepId");
 		strKeyValueDown = GetTextByColumnName(pList, nRow, "Id");
 		strMenuText = GetTextByColumnName(pList, nRow, "BodyPartDicomName");
+		CString strScanExecutionId  = GetTextByColumnName(pList, nRow, "ScanExecutionId");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PATIENT, "Query Patient ( BodyPart = " + strMenuText + " )");
@@ -979,6 +993,10 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		strSqlProcedureStep.Format("SELECT * FROM ProcedureStep WHERE Id = '%s'", strKeyValueUp );
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_IMAGE, "Query Image ( BodyPart = " + strMenuText + " )");
 		strSqlImage.Format("SELECT * FROM CaptureImage WHERE SeriesId = '%s'",strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN_EXECUTION, "Query Scan Execution ( BodyPart = " + strMenuText + " )");
+		strSqlScanExecution.Format("SELECT * FROM ScanExecution WHERE Id = '%s'", strScanExecutionId );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_SERIES, "Delete Series ( BodyPart = " + strMenuText + " )");
@@ -1002,6 +1020,10 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		strSqlProcedureStep.Format("SELECT * FROM ProcedureStep WHERE Id IN ( SELECT ProcedureStepId FROM Series WHERE Id = '%s')", strKeyValueUp );
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SERIES, "Query Series ( SOPInstanceUID = " + strMenuText + " )");
 		strSqlSeries.Format("SELECT * FROM Series WHERE Id = '%s'",strKeyValueUp );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN_EXECUTION, "Query Scan Execution ( SOPInstanceUID = " + strMenuText + " )");
+		strSqlScanExecution.Format("SELECT * FROM ScanExecution WHERE Id IN ( SELECT ScanExecutionId FROM Series WHERE Id = '%s')", strKeyValueUp );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_IMAGE, "Delete Image ( SOPInstanceUID = " + strMenuText + " )");
@@ -1101,6 +1123,10 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 	case WM_MSG_QUERY_IMAGE:
 		ChangeCurrentTable("CaptureImage");
 		RunSQL(strSqlImage, TRUE);
+		break;
+	case WM_MSG_QUERY_SCAN_EXECUTION:
+		ChangeCurrentTable("ScanExecution");
+		RunSQL(strSqlScanExecution, TRUE);
 		break;
 	//case WM_MSG_QUERY_ORDER:
 	//	ChangeCurrentTable("MWLOrder");
