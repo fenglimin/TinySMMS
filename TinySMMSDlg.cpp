@@ -54,6 +54,8 @@ static char THIS_FILE[] = __FILE__;
 #define WM_MSG_OPEN_STUDY_DIR						(WM_USER +500)
 #define WM_MSG_OPEN_IMAGE							(WM_USER +501)
 
+#define WM_MSG_OPEN_IMAGE_FOLDER					(WM_USER + 1000)
+
 
 class CAboutDlg : public CDialog
 {
@@ -918,7 +920,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_PATIENT, "Delete All Selected Patients");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		AddMenuList(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_PATIENT, strKeyValueDown)));
+		AddCtMenuList(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_PATIENT, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("study") == 0 )
 	{
@@ -948,7 +950,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, WM_MSG_OPEN_STUDY_DIR, "Open Study Dir( StudyInstanceUID = " + strKeyValueDown + " )");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		AddMenuList(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_STUDY, strKeyValueDown)));
+		AddCtMenuList(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_STUDY, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("procedurestep") == 0 )
 	{
@@ -975,7 +977,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_PROCEDURESTEP, "Delete All Selected ProcedureSteps");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		AddMenuList(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_PROCEDURESTEP, strKeyValueDown)));
+		AddCtMenuList(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_PROCEDURESTEP, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("series") == 0 )
 	{
@@ -1003,7 +1005,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_SERIES, "Delete All Selected Series");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		AddMenuList(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_SERIES, strKeyValueDown)));
+		AddCtMenuList(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_SERIES, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("captureimage") == 0 )
 	{
@@ -1030,10 +1032,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_IMAGE, "Delete All Selected Images");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, WM_MSG_OPEN_IMAGE, "Open Image ( SOPInstanceUID = " + strMenuText + " )");
-
-		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		AddMenuList(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_IMAGE, strKeyValueDown)));
+		AddCtMenuList(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_IMAGE, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("ProtocolTemplate") == 0 )
 	{
@@ -1165,6 +1164,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 	case WM_MSG_OPEN_IMAGE:
 		OpenImage(strKeyValueDown);
 		break;
+
 	case WM_MSG_DELETE_ALL_SELECTED_IMAGE:
 	case WM_MSG_DELETE_ALL_SELECTED_SERIES:
 	case WM_MSG_DELETE_ALL_SELECTED_STUDY:
@@ -1203,7 +1203,11 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		ChangeCurrentTable("ReconParamTemplate");
 		RunSQL(strSqlReconParamTemplate, TRUE);
 		break;
-		
+	}
+
+	if (nResult > WM_MSG_OPEN_IMAGE_FOLDER)
+	{
+		OpenImageFolder(nResult - WM_MSG_OPEN_IMAGE_FOLDER);
 	}
 }
 
@@ -2018,11 +2022,27 @@ void CTinySMMSDlg::AddMenuList( CMenu* pMenu, vector<CString> vecMenuText )
 {
 	for (int i = 0; i < vecMenuText.size(); i ++)
 	{
-		if (vecMenuText[i].Find("ProcedureStep") != -1)
+		pMenu->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_VIEW_PSSI, vecMenuText[i]);
+	}
+	
+}
+
+void CTinySMMSDlg::AddCtMenuList( CMenu* pMenu, vector<CString> vecMenuText )
+{
+	m_vecImageId.clear();
+	for (int i = 0; i < vecMenuText.size(); i ++)
+	{
+		CString strMenuText = vecMenuText[i].Left(vecMenuText[i].GetLength() - 38);
+		CString strId = vecMenuText[i].Right(38);
+
+		CString strValue = vecMenuText[i];
+		strValue.TrimLeft().MakeUpper();
+		if (strValue.Left(13) == "PROCEDURESTEP")
 		{
-			CString strMenuText = vecMenuText[i].Left(vecMenuText[i].GetLength() - 39);
-			CString strProtocolId = vecMenuText[i].Right(38);
-			vector<CString> vecProtocol = GetCtProtolDetail( strProtocolId );
+			CString strProtocolTemplateId = strMenuText.Right(38);
+			strMenuText = strMenuText.Left(strMenuText.GetLength() - 39);
+			
+			vector<CString> vecProtocol = GetCtProtolDetail( strProtocolTemplateId );
 
 			CMenu menuProtocol;
 			menuProtocol.CreatePopupMenu();
@@ -2031,10 +2051,14 @@ void CTinySMMSDlg::AddMenuList( CMenu* pMenu, vector<CString> vecMenuText )
 
 			pMenu->AppendMenu(MF_POPUP, (UINT_PTR)menuProtocol.GetSafeHmenu(), 	strMenuText);
 		}
+		else if (strValue.Left(5) == "IMAGE")
+		{
+			m_vecImageId.push_back(strId);
+			pMenu->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_OPEN_IMAGE_FOLDER + m_vecImageId.size(), strMenuText);
+		}
 		else
-			pMenu->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_VIEW_PSSI, vecMenuText[i]);
+			pMenu->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_VIEW_PSSI, strMenuText);
 	}
-	
 }
 
 vector<CString> CTinySMMSDlg::GetImageDetail( const CString& strSeriesInstanceUID )
@@ -2628,7 +2652,7 @@ vector<CString> CTinySMMSDlg::GetCtPssiDetail( const CString& Id )
 	}
 	dbrs.Close();
 
-	vecPssi.push_back("Patient - Name : " + strPatientName + ", ID : " + strPatientID);
+	vecPssi.push_back("Patient - Name : " + strPatientName + ", ID : " + strPatientID + Id);
 
 	//////////////////////////////////////////////////////////////////////////////////////////////
 	strSql = "SELECT Id, StudyDateTimeCombinedDateTime, AccessionNumber FROM Study WHERE PatientId = '" + Id + "'";
@@ -2652,7 +2676,7 @@ vector<CString> CTinySMMSDlg::GetCtPssiDetail( const CString& Id )
 			strPrefix = "  * ";
 
 		CString strLine;
-		strLine.Format("%sStudy - DateTime : %s, AccessionNo : %s", strPrefix, strStudyDateTime, strAccessionNo);
+		strLine.Format("%sStudy - DateTime : %s, AccessionNo : %s%s", strPrefix, strStudyDateTime, strAccessionNo, strStudyId);
 		vecPssi.push_back(strLine);
 
 		vector<CString> vecProcedureStep = GetProcedureStepDetail(strStudyId);
@@ -2695,7 +2719,7 @@ vector<CString> CTinySMMSDlg::GetProcedureStepDetail( const CString& strStudyId 
 		if (m_nViewPssiClickedType == WM_MSG_QUERY_PROCEDURESTEP && m_strViewPssiClickeUID == strProcedureStepId)
 			strPrefix = "      * ";
 
-		vecProcedureStep.push_back(strPrefix + "ProcedureStep - Name : " + strProcedureName + ", Code : " + strProcedureCode + stsrProtocolTemplateId);
+		vecProcedureStep.push_back(strPrefix + "ProcedureStep - Name : " + strProcedureName + ", Code : " + strProcedureCode + stsrProtocolTemplateId + strProcedureStepId);
 
 		vector<CString> vecImage = GetCtSeriesDetail(strProcedureStepId);
 		for (int i = 0; i < vecImage.size(); i ++)
@@ -2736,7 +2760,7 @@ vector<CString> CTinySMMSDlg::GetCtSeriesDetail( const CString& strProcedureStep
 		if (m_nViewPssiClickedType == WM_MSG_QUERY_SERIES && m_strViewPssiClickeUID == strSeriesId)
 			strPrefix = "          * ";
 
-		vecSeries.push_back(strPrefix + "Series - BodyPart : " + strBodyPart + ", Modality : " + strModality);
+		vecSeries.push_back(strPrefix + "Series - BodyPart : " + strBodyPart + ", Modality : " + strModality + strSeriesId);
 
 		vector<CString> vecImage = GetCtImageDetail(strSeriesId);
 		for (int i = 0; i < vecImage.size(); i ++)
@@ -2783,7 +2807,7 @@ vector<CString> CTinySMMSDlg::GetCtImageDetail( const CString& strSeriesId )
 			strPrefix = "              * ";
 
 		CString strLine;
-		strLine.Format(strPrefix + "Image - ImageType : %s, SliceCount : %d, FolderPath : %s", strImageType, nSliceCount, strFolderPath);
+		strLine.Format(strPrefix + "Image - ImageType : %s, SliceCount : %d, FolderPath : %s%s", strImageType, nSliceCount, strFolderPath, strId);
 		vecImage.push_back(strLine);
 
 		dbrs.MoveNext();
@@ -3208,4 +3232,30 @@ void CTinySMMSDlg::CreateMapForButton()
 		m_mapTableButton["ScanParamTemplate"]  = &m_btnRoleProfile;
 		m_mapTableButton["ReconParamTemplate"] = &m_btnSystemProfile;
 	}
+}
+
+void CTinySMMSDlg::OpenImageFolder( int nIndex )
+{
+	CString strSql;
+	strSql.Format("SELECT FolderPath FROM CaptureImage WHERE Id = '%s'", m_vecImageId[nIndex - 1]);
+
+	CADORecordset dbrs(m_pDBConn);
+	if (!dbrs.Open((LPCTSTR)strSql))
+	{
+		AfxMessageBox(dbrs.GetLastErrorString());
+		return;
+	}
+
+	CString strFolderPath;
+	if (dbrs.IsEOF())
+	{
+		AfxMessageBox("Can not find image in the database");
+		dbrs.Close();
+		return;
+	}
+	
+	dbrs.GetFieldValue("FolderPath", strFolderPath);
+	dbrs.Close();
+
+	ShellExecute(NULL, _T("Open"), NULL, _T(""), strFolderPath, SW_SHOW);
 }

@@ -100,7 +100,8 @@ public:
 	vector<CString> GetSeriesDetail( const CString& strStudyInstnaceUID );
 	vector<CString> GetImageDetail( const CString& strSeriesInstanceUID );
 	void AddMenuList( CMenu* pMenu, vector<CString> vecMenuText );
-	vector<CString> GetPssiDetail(const CString& strPatientGUID);
+void AddCtMenuList(CMenu* pMenu, vector<CString> vecMenuText);
+vector<CString> GetPssiDetail(const CString& strPatientGUID);
 	CString GetPatientGUID(int nIDType, const CString& strUID);
 	CString	m_strCurrentTable;
 	BOOL RunSQL(CString strSQL, BOOL bColumnsChange, BOOL bAddToCommandList=TRUE );
@@ -140,6 +141,7 @@ public:
 	int		m_nClickedRow;
 	CRect		m_rectClient;
 	vector<CString> m_vecCommonTables;
+	vector<CString> m_vecImageId;
 	//}}AFX_DATA
 
 	// ClassWizard generated virtual function overrides
@@ -248,6 +250,7 @@ public:
 	void AutoFitWidth();
 	void SetActiveButton(CColorButton* pButton);
 	void CreateMapForButton();
+	void OpenImageFolder( int nIndex );
 };
 
 //{{AFX_INSERT_LOCATION}}
