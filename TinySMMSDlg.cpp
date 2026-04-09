@@ -947,9 +947,6 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_STUDY, "Delete All Selected Studies");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING | MF_ENABLED, WM_MSG_OPEN_STUDY_DIR, "Open Study Dir( StudyInstanceUID = " + strKeyValueDown + " )");
-
-		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		AddCtMenuList(menu.GetSubMenu(0), GetCtPssiDetail(GetCtPatientId(WM_MSG_QUERY_STUDY, strKeyValueDown)));
 	}
 	else if ( m_strCurrentTable.CompareNoCase("procedurestep") == 0 )
