@@ -40,6 +40,9 @@ static char THIS_FILE[] = __FILE__;
 #define WM_MSG_DELETE_ORDER							(WM_USER +204)
 #define WM_MSG_DELETE_VIEW							(WM_USER +205)
 #define WM_MSG_DELETE_PROCEDURESTEP					(WM_USER +206)
+#define WM_MSG_DELETE_PROTOCOL						(WM_USER +207)
+#define WM_MSG_DELETE_SCAN							(WM_USER +208)
+#define WM_MSG_DELETE_RECON							(WM_USER +209)
 
 #define WM_MSG_DELETE_ALL_SELECTED_PATIENT			(WM_USER +300)
 #define WM_MSG_DELETE_ALL_SELECTED_STUDY			(WM_USER +301)
@@ -48,6 +51,9 @@ static char THIS_FILE[] = __FILE__;
 #define WM_MSG_DELETE_ALL_SELECTED_ORDER			(WM_USER +304)
 #define WM_MSG_DELETE_ALL_SELECTED_VIEW				(WM_USER +305)
 #define WM_MSG_DELETE_ALL_SELECTED_PROCEDURESTEP	(WM_USER +306)
+#define WM_MSG_DELETE_ALL_SELECTED_PROTOCOL			(WM_USER +307)
+#define WM_MSG_DELETE_ALL_SELECTED_SCAN				(WM_USER +308)
+#define WM_MSG_DELETE_ALL_SELECTED_RECON			(WM_USER +309)
 
 #define WM_MSG_VIEW_PSSI							(WM_USER +400)
 
@@ -1037,10 +1043,13 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		strMenuText = GetTextByColumnName(pList, nRow, "UniqueName");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN, "Query CT Scan ( " + strMenuText + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN, "Query Scan ( Protocol Name = " + strMenuText + " )");
 		strSqlScanTemplate.Format("SELECT * FROM ScanTemplate WHERE ProtocolTemplateId = '%s'", strKeyValueDown );
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_RECON, "Query CT Reconstruction ( " + strMenuText + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_RECON, "Query Reconstruction ( Protocol Name = " + strMenuText + " )");
 		strSqlReconTemplate.Format("SELECT * FROM ReconTemplate WHERE ScanTemplateId IN (SELECT Id FROM ScanTemplate WHERE ProtocolTemplateId = '%s')", strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_PROTOCOL, "Delete Protocol ( Protocol Name = " + strMenuText + " )");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		m_strCtDetailId = strKeyValueDown;
@@ -1053,14 +1062,17 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		strMenuText = GetTextByColumnName(pList, nRow, "UniqueName");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PROTOCOL, "Query CT Protocol ( " + strMenuText + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PROTOCOL, "Query Protocol ( " + strMenuText + " )");
 		strSqlProtocolTemplate.Format("SELECT * FROM ProtocolTemplate WHERE Id = '%s'", strKeyValueUp );
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_RECON, "Query CT Reconstruction  ( " + strMenuText + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_RECON, "Query Reconstruction  ( " + strMenuText + " )");
 		strSqlReconTemplate.Format("SELECT * FROM ReconTemplate WHERE ScanTemplateId = '%s'", strKeyValueDown );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN_PRRAM, "Query Scan Params  ( " + strMenuText + " )");
 		strSqlScanParamTemplate.Format("SELECT * FROM ScanParamTemplate WHERE ScanTemplateId = '%s'", strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_SCAN, "Delete Scan ( " + strMenuText + " )");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		m_strCtDetailId = strKeyValueDown;
@@ -1074,14 +1086,17 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		CString strProtocolId = GetProtocolTemplateIdFromScanId(strKeyValueUp);
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PROTOCOL, "Query CT Protocol ( " + strMenuText + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PROTOCOL, "Query Protocol ( " + strMenuText + " )");
 		strSqlProtocolTemplate.Format("SELECT * FROM ProtocolTemplate WHERE Id = '%s'", strProtocolId );
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN, "Query CT Scan  ( " + strMenuText + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN, "Query Scan  ( " + strMenuText + " )");
 		strSqlScanTemplate.Format("SELECT * FROM ScanTemplate WHERE Id = '%s'", strKeyValueUp );
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
-		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_RECON_PRRAM, "Query CT Recon Params  ( " + strMenuText + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_RECON_PRRAM, "Query Recon Params  ( " + strMenuText + " )");
 		strSqlReconParamTemplate.Format("SELECT * FROM ReconParamTemplate WHERE ReconTemplateId = '%s'", strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_RECON, "Delete Recon ( " + strMenuText + " )");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		m_strCtDetailId = strKeyValueDown;
@@ -1154,6 +1169,14 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 			}
 		}
 				
+		break;
+	case WM_MSG_DELETE_PROTOCOL:
+	case WM_MSG_DELETE_SCAN:
+	case WM_MSG_DELETE_RECON:
+		if (DeleteProtocolRelated(nResult, strKeyValueDown))
+		{
+			m_pCurrentList->DeleteItem(nRow);
+		}
 		break;
 	case WM_MSG_OPEN_STUDY_DIR:
 		OpenStudyDir(strKeyValueDown);
@@ -3255,4 +3278,32 @@ void CTinySMMSDlg::OpenImageFolder( int nIndex )
 	dbrs.Close();
 
 	ShellExecute(NULL, _T("Open"), NULL, _T(""), strFolderPath, SW_SHOW);
+}
+
+BOOL CTinySMMSDlg::DeleteProtocolRelated( int nType, const CString& strUid )
+{
+	vector<CString> vecSqlList;
+
+	if (nType == WM_MSG_DELETE_PROTOCOL)
+	{
+		vecSqlList.push_back("Delete ReconParamTemplate FROM ReconParamTemplate, ReconTemplate, ScanTemplate WHERE ReconParamTemplate.ReconTemplateId = ReconTemplate.Id AND ReconTemplate.ScanTemplateId = ScanTemplate.Id AND ScanTemplate.ProtocolTemplateId = '" + strUid + "'");
+		vecSqlList.push_back("Delete ReconTemplate FROM ReconTemplate, ScanTemplate WHERE ReconTemplate.ScanTemplateId = ScanTemplate.Id AND ScanTemplate.ProtocolTemplateId = '" + strUid + "'");
+		vecSqlList.push_back("Delete ScanParamTemplate FROM ScanParamTemplate, ScanTemplate WHERE ScanParamTemplate.ScanTemplateId = ScanTemplate.Id AND ScanTemplate.ProtocolTemplateId = '" + strUid + "'");
+		vecSqlList.push_back("Delete ScanTemplate WHERE ProtocolTemplateId = '" + strUid + "'");
+		vecSqlList.push_back("Delete ProtocolTemplate WHERE Id = '" + strUid + "'");
+	}
+	else if (nType == WM_MSG_DELETE_SCAN)
+	{
+		vecSqlList.push_back("Delete ReconParamTemplate FROM ReconParamTemplate, ReconTemplate, ScanTemplate WHERE ReconParamTemplate.ReconTemplateId = ReconTemplate.Id AND ReconTemplate.ScanTemplateId = '" + strUid + "'");
+		vecSqlList.push_back("Delete ReconTemplate WHERE ScanTemplateId = '" + strUid + "'");
+		vecSqlList.push_back("Delete ScanParamTemplate WHERE ScanTemplateId = '" + strUid + "'");
+		vecSqlList.push_back("Delete ScanTemplate WHERE Id = '" + strUid + "'");
+	}
+	else if (nType == WM_MSG_DELETE_PROTOCOL)
+	{
+		vecSqlList.push_back("Delete ReconParamTemplate WHERE ReconTemplateId = '" + strUid + "'");
+		vecSqlList.push_back("Delete ReconTemplate WHERE Id = '" + strUid + "'");
+	}
+
+	return m_pDBConn->RunTransaction(vecSqlList);
 }
