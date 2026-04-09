@@ -1050,6 +1050,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_PROTOCOL, "Delete Protocol ( Protocol Name = " + strMenuText + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_PROTOCOL, "Delete All Selected Protocols");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		m_strCtDetailId = strKeyValueDown;
@@ -1073,6 +1074,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_SCAN, "Delete Scan ( " + strMenuText + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_SCAN, "Delete All Selected Scans");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		m_strCtDetailId = strKeyValueDown;
@@ -1097,6 +1099,7 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_RECON, "Delete Recon ( " + strMenuText + " )");
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_DELETE_ALL_SELECTED_RECON, "Delete All Selected Recons");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		m_strCtDetailId = strKeyValueDown;
@@ -1199,6 +1202,11 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		
 		break;
 
+	case WM_MSG_DELETE_ALL_SELECTED_PROTOCOL:
+	case WM_MSG_DELETE_ALL_SELECTED_SCAN:
+	case WM_MSG_DELETE_ALL_SELECTED_RECON:
+		DeleteAllSelectedProtocolRelated(nResult - 100);
+		break;
 	case WM_MSG_QUERY_PROTOCOL:
 		ChangeCurrentTable("ProtocolTemplate");
 		RunSQL(strSqlProtocolTemplate, TRUE);
@@ -3306,4 +3314,26 @@ BOOL CTinySMMSDlg::DeleteProtocolRelated( int nType, const CString& strUid )
 	}
 
 	return m_pDBConn->RunTransaction(vecSqlList);
+}
+
+void CTinySMMSDlg::DeleteAllSelectedProtocolRelated( int nType )
+{
+	POSITION pos = m_pCurrentList->GetFirstSelectedItemPosition();
+	while ( pos )
+	{
+		int nRow = m_pCurrentList->GetNextSelectedItem(pos);
+
+
+		CString strUID = GetTextByColumnName(m_pCurrentList, nRow, "Id");
+		if (DeleteProtocolRelated(nType, strUID))
+		{
+			m_pCurrentList->DeleteItem(nRow);	
+		}
+		else
+		{
+			return;
+		}		
+
+		pos = m_pCurrentList->GetFirstSelectedItemPosition();
+	}
 }

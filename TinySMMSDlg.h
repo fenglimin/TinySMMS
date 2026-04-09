@@ -252,6 +252,7 @@ public:
 	void SetActiveButton(CColorButton* pButton);
 	void CreateMapForButton();
 	void OpenImageFolder( int nIndex );
+	void DeleteAllSelectedProtocolRelated( int nType );
 };
 
 //{{AFX_INSERT_LOCATION}}
