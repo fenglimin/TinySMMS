@@ -1043,6 +1043,18 @@ void CTinySMMSDlg::OnCtContextMenu( CListCtrl* pListCtrl, int nRow, int nCol, UI
 		strMenuText = GetTextByColumnName(pList, nRow, "UniqueName");
 
 		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PATIENT, "Query Patient ( Protocol Name = " + strMenuText + " )");
+		strSqlPatient.Format("SELECT * FROM Patient WHERE Id IN (SELECT PatientId FROM Study WHERE Id IN (SELECT StudyId FROM ProcedureStep WHERE ProtocolTemplateId = '%s'))", strKeyValueDown );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_STUDY, "Query Study ( Protocol Name = " + strMenuText + " )");
+		strSqlStudy.Format("SELECT * FROM Study WHERE Id IN (SELECT StudyId FROM ProcedureStep WHERE ProtocolTemplateId = '%s')", strKeyValueDown );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_PROCEDURESTEP, "Query ProcedureStep ( Protocol Name = " + strMenuText + " )");
+		strSqlProcedureStep.Format("SELECT * FROM ProcedureStep WHERE ProtocolTemplateId = '%s'", strKeyValueDown );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SERIES, "Query Series ( Protocol Name = " + strMenuText + " )");
+		strSqlSeries.Format("SELECT * FROM Series WHERE ProcedureStepId IN (SELECT Id FROM ProcedureStep WHERE ProtocolTemplateId = '%s')", strKeyValueDown );
+		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_IMAGE, "Query Image ( Protocol Name = " + strMenuText + " )");
+		strSqlImage.Format("SELECT * FROM CaptureImage WHERE SeriesId IN ( SELECT Id FROM Series WHERE ProcedureStepId IN (SELECT Id FROM ProcedureStep WHERE ProtocolTemplateId = '%s'))", strKeyValueDown );
+
+		menu.GetSubMenu(0)->AppendMenu(MF_SEPARATOR);
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_SCAN, "Query Scan ( Protocol Name = " + strMenuText + " )");
 		strSqlScanTemplate.Format("SELECT * FROM ScanTemplate WHERE ProtocolTemplateId = '%s'", strKeyValueDown );
 		menu.GetSubMenu(0)->AppendMenu(MF_STRING|MF_ENABLED, WM_MSG_QUERY_RECON, "Query Reconstruction ( Protocol Name = " + strMenuText + " )");
