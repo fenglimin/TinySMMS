@@ -2486,16 +2486,19 @@ void CTinySMMSDlg::LoadSystemInfo()
 		m_listSystemInfo.SetCell(nRow++, 1, "");
 		m_listSystemInfo.SetCell(nRow++, 1, "");
 		m_listSystemInfo.SetCell(nRow++, 1, "ImageView");
-		m_listSystemInfo.SetCell(nRow++, 1, "CT");
+		m_listSystemInfo.SetCell(nRow++, 1, m_nProductType == PRODUCT_CT? "CT" : "DR");
 		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("Patient"));
 		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("Study"));
 		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("ProcedureStep"));
 		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("Series"));
 		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("CaptureImage"));
-		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("ScanExecution"));
-		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("ProtocolTemplate"));
-		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("ScanTemplate"));
-		m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("ReconTemplate"));
+		if (m_nProductType == PRODUCT_CT)
+		{
+			m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("ScanExecution"));
+			m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("ProtocolTemplate"));
+			m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("ScanTemplate"));
+			m_listSystemInfo.SetCell(nRow++, 1, GetTableRowCount("ReconTemplate"));
+		}		
 	}
 }
 
